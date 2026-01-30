@@ -1,7 +1,7 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
 (defpackage #:ck-fs
-  (:use #:cl #:ck-clle #:ck-pm)
+  (:use #:cl #:ck-clle #:ck-procvisor)
   (:export #:absolute-pathname
            #:relative-pathname
            #:pathname-stem
@@ -165,12 +165,12 @@ FILE-HANDLE, & execute BODY, returning its result."
   (check-type pathname (or string pathname))
   (when (probe-file pathname)
     (handler-case
-        (progn
-          #+win32
-          (start-process "tar" "-tzf" (namestring pathname) :ignore-error-status nil)
-          #-win32
-          (start-process "unzip" "-t" (namestring pathname) :ignore-error-status nil)
-          t)
+        (let ((process #+win32
+                       (make-process (list "tar" "-tzf" (namestring pathname)))
+                       #-win32
+                       (make-process (list "unzip" "-t" (namestring pathname)))))
+          (join-process process)
+          (zerop (process-exit-code process)))
       (error () nil))))
 
 (defun extract-files-from-archive (archive-path file-specs)
@@ -187,10 +187,13 @@ FILE-HANDLE, & execute BODY, returning its result."
   (unless (zip-file-p archive-path)
     (error "File is not a ZIP archive: ~A." archive-path))
   (with-temporary-directory (temp-dir)
-    #+win32
-    (start-process "tar" "-xf" (namestring archive-path) "-C" (namestring temp-dir))
-    #-win32
-    (start-process "unzip" "-q" "-o" (namestring archive-path) "-d" (namestring temp-dir))
+    (let ((process #+win32
+                   (make-process (list "tar" "-xf" (namestring archive-path) "-C" (namestring temp-dir)))
+                   #-win32
+                   (make-process (list "unzip" "-q" "-o" (namestring archive-path) "-d" (namestring temp-dir)))))
+      (join-process process)
+      (unless (zerop (process-exit-code process))
+        (error "Failed to extract archive: ~A." archive-path)))
     (loop :for (internal-path . destination) :in file-specs
           :for extracted-file := (merge-pathnames internal-path temp-dir)
           :do (unless (probe-file extracted-file)
