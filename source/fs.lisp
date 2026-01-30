@@ -42,8 +42,7 @@
             (error "PATHNAME must be absolute or relative.")))))
 
 (defun pathname-stem (pathname)
-  "Extract and return the stem of the provided PATHNAME.
-The stem is the path including the filename but excluding the extension."
+  "Return the stem extracted of the provided PATHNAME."
   (check-type pathname (or string pathname))
   (let* ((name (file-namestring pathname))
          (pos  (position #\. name :from-end t)))
@@ -53,14 +52,13 @@ The stem is the path including the filename but excluding the extension."
       (t name))))
 
 (defun parent-directory (pathname)
-  "Get the parent pathname of the given PATHNAME."
+  "Return the parent pathname of the given PATHNAME."
   (uiop:pathname-parent-directory-pathname pathname))
 
 (setf (fdefinition 'cwd) #'uiop:getcwd)
 
 (defun file-extension (pathname)
-  "Get the file extension of the given PATHNAME.
-Returns empty string if there is no extension."
+  "Return the file extension of the given PATHNAME or empty string if none."
   (check-type pathname (or string pathname))
   (let ((name (namestring pathname)))
     (let ((pos (position #\. name :from-end t)))
@@ -69,7 +67,7 @@ Returns empty string if there is no extension."
           ""))))
 
 (defun file-base (pathname)
-  "Get the base name of the file without extension."
+  "Return the base name of the file without extension."
   (check-type pathname (or string pathname))
   (let* ((name (file-namestring pathname))
          (pos  (position #\. name :from-end t)))
@@ -79,16 +77,14 @@ Returns empty string if there is no extension."
       (t name))))
 
 (defun file-age (pathname)
-  "Return the modification time (universal time) of the given PATHNAME.
-Throws an error if the pathname is a directory."
+  "Return the modification time (universal time) of the given PATHNAME."
   (check-type pathname (or string pathname))
   (when (uiop:directory-pathname-p pathname)
     (error "FILE-AGE does not work on directories: ~A." pathname))
   (file-write-date pathname))
 
 (defun copy-if-newer (source destination)
-  "Copy SOURCE to DESTINATION if SOURCE is newer than DESTINATION or if DESTINATION does not exist.
-Returns the destination pathname if a copy was made, NIL otherwise."
+  "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent, returning pathname or NIL."
   (check-type source (or string pathname))
   (check-type destination (or string pathname))
   (let* ((final-destination (if (and (uiop:directory-pathname-p destination)
@@ -132,14 +128,13 @@ Returns the destination pathname if a copy was made, NIL otherwise."
         cache-directory)))
 
 (defmacro with-working-directory (directory &body body)
-  "Execute BODY with DIRECTORY as the current working directory."
+  "Return the result of executing BODY with DIRECTORY as the current working directory."
   `(let ((*default-pathname-defaults* ,directory))
      ,@body))
 
 (defmacro with-transient-file (file-handle &body body)
-  "Create a temporary file in the system temporary directory, open it as a stream, bind the stream
-to FILE-HANDLE, execute BODY, and ensure the file is closed and deleted after BODY completes (even
-if an error occurs)."
+  "Create a temporary file in the system temporary directory, open it as a stream bound to
+FILE-HANDLE, & execute BODY, returning its result."
   (let ((temp-pathname (gensym "TEMP-PATHNAME")))
     `(let ((,temp-pathname (merge-pathnames (symbol-name (gensym "TEMP"))
                                             (user-temporary-directory))))
@@ -154,7 +149,7 @@ if an error occurs)."
            (delete-file ,temp-pathname))))))
 
 (defmacro with-temporary-directory ((directory-var) &body body)
-  "Create a temporary directory, bind it to DIRECTORY-VAR, execute BODY, and clean up."
+  "Return the result of executing BODY with a temporary directory bound to DIRECTORY-VAR."
   `(let ((,directory-var
            (merge-pathnames (make-pathname :directory
                                            `(:relative ,(symbol-name (gensym "TEMP-DIR"))))
@@ -166,7 +161,7 @@ if an error occurs)."
          (uiop:delete-directory-tree ,directory-var :validate t)))))
 
 (defun zip-file-p (pathname)
-  "Check if PATHNAME is a valid ZIP archive by testing it."
+  "Return T if PATHNAME is a valid ZIP archive."
   (check-type pathname (or string pathname))
   (when (probe-file pathname)
     (handler-case
@@ -179,10 +174,12 @@ if an error occurs)."
       (error () nil))))
 
 (defun extract-files-from-archive (archive-path file-specs)
-  "Extract multiple files from an archive in a single extraction operation.
+  "Extract multiple files from an archive in a single operation, returning extracted pathnames.
 
-Returns a list of destination pathnames for successfully extracted files.
-FILE-SPECS is a list of (<internal pathname> . <destination pathname>) pairs."
+<file-specs>           ::= ({<file-spec>}+)
+<file-spec>            ::= (<internal-pathname> . <destination-pathname>)
+<internal-pathname>    ::= pathname
+<destination-pathname> ::= pathname"
   (check-type archive-path (or string pathname))
   (check-type file-specs list)
   (unless (probe-file archive-path)

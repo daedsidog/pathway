@@ -7,8 +7,7 @@
 (in-package #:ck-fs/tests)
 
 (defparameter +sleep-interval+ 1.5
-  "Sleep interval for tests that need timing differences.
-Must be >1 second because FILE-WRITE-DATE returns universal time which has 1-second resolution.")
+  "Sleep interval for tests needing timing differences, >1 second for FILE-WRITE-DATE resolution")
 
 (defun run-tests ()
   (run! 'fs-test))
