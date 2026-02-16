@@ -8,4 +8,4 @@
 (defsystem #:ck-fs/tests
   :depends-on (#:ck-fs #:fiveam)
   :components ((:module "tests"
-                :components ((:file "tests")))))
+                :components ((:file "fs-tests")))))
