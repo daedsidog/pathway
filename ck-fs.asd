@@ -3,9 +3,9 @@
 (defsystem #:ck-fs
   :depends-on (#:ck-clle)
   :components ((:module "source"
-                :components ((:file "fs")))))
+                :components ((:file "package")))))
 
 (defsystem #:ck-fs/tests
   :depends-on (#:ck-fs #:fiveam)
   :components ((:module "tests"
-                :components ((:file "fs-tests")))))
+                :components ((:file "package")))))
