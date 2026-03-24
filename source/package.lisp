@@ -1,7 +1,7 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
 (defpackage #:pathway
-  (:use #:cl #:clean)
+  (:use #:clean)
   (:nicknames #:pw)
   (:export #:absolute-pathname
            #:relative-pathname

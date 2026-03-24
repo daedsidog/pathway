@@ -1,7 +1,7 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
 (defpackage #:pathway/tests
-  (:use #:cl #:clean #:fiveam #:pathway)
+  (:use #:clean #:fiveam #:pathway)
   (:export #:run-tests))
 
 (in-package #:pathway/tests)
