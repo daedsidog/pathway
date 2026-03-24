@@ -1,7 +1,7 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
 (defpackage #:ck-fs
-  (:use #:cl #:ck-clle)
+  (:use #:cl #:clean)
   (:export #:absolute-pathname
            #:relative-pathname
            #:pathname-stem

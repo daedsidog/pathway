@@ -1,7 +1,7 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
 (defsystem #:ck-fs
-  :depends-on (#:ck-clle)
+  :depends-on (#:clean)
   :components ((:module "source"
                 :components ((:file "package")))))
 

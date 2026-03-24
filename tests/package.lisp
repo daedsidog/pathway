@@ -1,7 +1,7 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
 (defpackage #:ck-fs/tests
-  (:use #:cl #:ck-clle #:fiveam #:ck-fs)
+  (:use #:cl #:clean #:fiveam #:ck-fs)
   (:export #:run-tests))
 
 (in-package #:ck-fs/tests)
