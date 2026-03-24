@@ -1,10 +1,10 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
-(defpackage #:ck-fs/tests
-  (:use #:cl #:clean #:fiveam #:ck-fs)
+(defpackage #:pathway/tests
+  (:use #:cl #:clean #:fiveam #:pathway)
   (:export #:run-tests))
 
-(in-package #:ck-fs/tests)
+(in-package #:pathway/tests)
 
 (defparameter +sleep-interval+ 1.5
   "Sleep interval for tests needing timing differences, >1 second for FILE-WRITE-DATE resolution")

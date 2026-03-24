@@ -1,7 +1,8 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
-(defpackage #:ck-fs
+(defpackage #:pathway
   (:use #:cl #:clean)
+  (:nicknames #:pw)
   (:export #:absolute-pathname
            #:relative-pathname
            #:pathname-stem
@@ -19,7 +20,7 @@
            #:extract-files-from-archive
            #:copy-if-newer))
 
-(in-package #:ck-fs)
+(in-package #:pathway)
 
 (defun absolute-pathname (pathname)
   "Return the absolute pathname of the given PATHNAME."

@@ -1,11 +1,11 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
-(defsystem #:ck-fs
+(defsystem #:pathway
   :depends-on (#:clean)
   :components ((:module "source"
                 :components ((:file "package")))))
 
-(defsystem #:ck-fs/tests
-  :depends-on (#:ck-fs #:fiveam)
+(defsystem #:pathway/tests
+  :depends-on (#:pathway #:fiveam)
   :components ((:module "tests"
                 :components ((:file "package")))))
