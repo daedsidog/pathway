@@ -12,8 +12,10 @@
 (defclass mapped-static-file (asdf:static-file)
   ((target-pathname :initarg :target-pathname
                     :reader target-pathname
-                    :documentation "Relative pathname of the extracted file within the cache directory"))
-  (:documentation "A static file archived in the source tree, extracted to a cache location"))
+                    :documentation
+                    "Relative pathname of the extracted file within the cache directory"))
+  (:documentation
+   "A static file archived in the source tree, extracted to a cache location"))
 
 (defun parse-archive-path (name)
   "Parse component NAME into archive-relative and internal paths.
@@ -29,7 +31,7 @@
               (subseq name (1+ split-pos))))))
 
 (defun cache-directory (component)
-  (pw:user-cache-directory
+  (pw:default-cache-directory
    (make-pathname :directory `(:relative ,(asdf:component-name
                                            (asdf:component-system component))))))
 
@@ -57,7 +59,7 @@
     (multiple-value-bind (archive-relative internal-path)
         (parse-archive-path (asdf:component-name c))
       (declare (ignore archive-relative))
-      (pw:extract-files-from-archive archive (list (cons internal-path output))))))
+      (pw:extract-from-archive archive (list (cons internal-path output))))))
 
 (defmethod asdf:component-depends-on ((op asdf:load-op) (c mapped-static-file))
   `((extract-op ,c) ,@(call-next-method)))

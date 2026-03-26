@@ -1,0 +1,108 @@
+;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
+
+(in-package #:pathway)
+
+(defun file-age (pathname)
+  "Return the modification time (universal time) of the given PATHNAME."
+  (check-type pathname (or string pathname))
+  (when (uiop:directory-pathname-p pathname)
+    (error "~A is a directory, not a file." pathname))
+  (file-write-date pathname))
+
+(defun copy-if-newer (source destination)
+  "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent, returning pathname or NIL."
+  (check-type source (or string pathname))
+  (check-type destination (or string pathname))
+  (let* ((final-destination (if (and (uiop:directory-pathname-p destination)
+                                     (not (uiop:directory-pathname-p source)))
+                                (merge-pathnames (file-namestring source) destination)
+                                destination))
+         (should-copy nil))
+    (when (uiop:pathname-equal source final-destination)
+      (return-from copy-if-newer nil))
+    (handler-case
+        (let ((dest-age (file-age final-destination)))
+          (when (> (file-age source) dest-age)
+            (setf should-copy t)))
+      (error ()
+        (setf should-copy t)))
+    (when should-copy
+      (ensure-directories-exist (uiop:pathname-parent-directory-pathname final-destination))
+      (uiop:copy-file source final-destination)
+      final-destination)))
+
+(defmacro with-cwd (directory &body body)
+  "Return the result of executing BODY with DIRECTORY as the current working directory."
+  `(let ((*default-pathname-defaults* ,directory))
+     ,@body))
+
+(defmacro with-transient-file (file-handle &body body)
+  "Create a transient file in the system transient directory, open it as a stream bound to
+FILE-HANDLE, & execute BODY, returning its result."
+  (let ((temp-pathname (gensym "TEMP-PATHNAME")))
+    `(let ((,temp-pathname (merge-pathnames (symbol-name (gensym "TEMP"))
+                                            (default-temporary-directory))))
+       (ensure-directories-exist ,temp-pathname)
+       (unwind-protect
+            (with-open-file (,file-handle ,temp-pathname
+                                          :direction :io
+                                          :if-exists :supersede
+                                          :if-does-not-exist :create)
+              ,@body)
+         (when (probe-file ,temp-pathname)
+           (delete-file ,temp-pathname))))))
+
+(defmacro with-transient-directory ((directory-var) &body body)
+  "Return the result of executing BODY with a transient directory bound to DIRECTORY-VAR."
+  `(let ((,directory-var
+           (merge-pathnames (make-pathname :directory
+                                           `(:relative ,(symbol-name (gensym "TEMP-DIR"))))
+                            (default-temporary-directory))))
+     (ensure-directories-exist ,directory-var)
+     (unwind-protect
+          (progn ,@body)
+       (when (probe-file ,directory-var)
+         (uiop:delete-directory-tree ,directory-var :validate t)))))
+
+(defun zip-file-p (pathname)
+  "Return T if PATHNAME is a valid ZIP archive."
+  (check-type pathname (or string pathname))
+  (when (probe-file pathname)
+    (handler-case
+        (multiple-value-bind (output error-output exit-code)
+            (uiop:run-program #+win32 (list "tar" "-tzf" (namestring pathname))
+                              #-win32 (list "unzip" "-t" (namestring pathname))
+                              :ignore-error-status t)
+          (declare (ignore output error-output))
+          (zerop exit-code))
+      (error () nil))))
+
+(defun extract-from-archive (archive-path file-specs)
+  "Extract multiple files from an archive in a single operation, returning extracted pathnames.
+
+<file-specs>           ::= ({<file-spec>}+)
+<file-spec>            ::= (<internal-pathname> . <destination-pathname>)
+<internal-pathname>    ::= pathname
+<destination-pathname> ::= pathname"
+  (check-type archive-path (or string pathname))
+  (check-type file-specs list)
+  (unless (probe-file archive-path)
+    (error "Archive not found: ~A" archive-path))
+  (unless (zip-file-p archive-path)
+    (error "File is not a ZIP archive: ~A" archive-path))
+  (with-transient-directory (temp-dir)
+    (multiple-value-bind (output error-output exit-code)
+        (uiop:run-program
+          #+win32 (list "tar" "-xf" (namestring archive-path) "-C" (namestring temp-dir))
+          #-win32 (list "unzip" "-q" "-o" (namestring archive-path) "-d" (namestring temp-dir))
+          :ignore-error-status t)
+      (declare (ignore output error-output))
+      (unless (zerop exit-code)
+        (error "Failed to extract archive: ~A" archive-path)))
+    (loop :for (internal-path . destination) :in file-specs
+          :for extracted-file := (merge-pathnames internal-path temp-dir)
+          :do (unless (probe-file extracted-file)
+                (error "File ~A not found in ~A." internal-path archive-path))
+              (ensure-directories-exist (uiop:pathname-parent-directory-pathname destination))
+              (uiop:copy-file extracted-file destination)
+          :collect destination)))

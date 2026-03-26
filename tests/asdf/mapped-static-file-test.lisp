@@ -2,7 +2,7 @@
 
 (in-package #:pathway/tests)
 
-(def-suite* asdf-test)
+(def-suite* asdf-test :in pathway-test)
 
 (defparameter +fixture-asd+
   (merge-pathnames "tests/asdf/fixtures/test-system-asdf.lisp"

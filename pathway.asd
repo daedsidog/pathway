@@ -3,7 +3,9 @@
 (defsystem #:pathway
   :depends-on (#:clean)
   :components ((:module "source"
-                :components ((:file "package")))))
+                :components ((:file "package")
+                             (:file "pathname-utilities")
+                             (:file "filesystem-utilities")))))
 
 (defsystem #:pathway/asdf
   :depends-on (#:pathway)
@@ -15,5 +17,9 @@
 (defsystem #:pathway/tests
   :depends-on (#:pathway #:pathway/asdf #:fiveam #:closer-mop)
   :components ((:module "tests"
+                :serial t
                 :components ((:file "package")
-                             (:file "asdf")))))
+                             (:file "pathname-utilities-test")
+                             (:file "filesystem-utilities-test")
+                             (:module "asdf"
+                               :components ((:file "mapped-static-file-test")))))))
