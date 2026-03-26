@@ -20,7 +20,7 @@
             (uiop:parse-native-namestring
              (subseq (uiop:native-namestring pathname)
                      (length (uiop:native-namestring cwd))))
-            (error "PATHNAME must be absolute or relative.")))))
+            (error "~A is not an absolute or relative pathname." pathname)))))
 
 (defun pathname-stem (pathname)
   "Return the stem extracted of the provided PATHNAME."
