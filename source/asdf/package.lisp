@@ -1,10 +1,9 @@
 ;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
 
-(defpackage #:pathway/asdf
+(uiop:define-package #:pathway/asdf
   (:use #:clean)
-  (:local-nicknames (#:pw #:pathway))
-  (:export #:extract-op
-           #:virtual-static-file
-           #:virtual-pathname))
+  (:use-reexport #:pathway/asdf/virtual-static-file))
 
 (in-package #:pathway/asdf)
+
+(import 'virtual-static-file :asdf)

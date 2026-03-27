@@ -1,6 +1,19 @@
 ;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
 
-(in-package #:pathway)
+(defpackage #:pathway/pathname-utilities
+  (:use #:clean)
+  (:export #:absolute-pathname
+           #:relative-pathname
+           #:pathname-stem
+           #:parent-directory
+           #:cwd
+           #:file-extension
+           #:file-base
+           #:user-home-directory
+           #:default-temporary-directory
+           #:default-cache-directory))
+
+(in-package #:pathway/pathname-utilities)
 
 (defun absolute-pathname (pathname)
   "Return the absolute pathname of the given PATHNAME."

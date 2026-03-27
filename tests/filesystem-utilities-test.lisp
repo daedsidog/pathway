@@ -1,12 +1,13 @@
 ;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
 
 (defpackage #:pathway/tests/filesystem-utilities-test
-  (:use #:clean #:fiveam #:pathway #:pathway/tests)
-  (:import-from #:pathway/tests/common #:+sleep-interval+))
+  (:use #:clean #:fiveam #:pathway)
+  (:import-from #:pathway/tests/common #:+sleep-interval+)
+  (:export #:run-tests))
 
 (in-package #:pathway/tests/filesystem-utilities-test)
 
-(def-suite* filesystem-test :in pathway-test)
+(def-suite* filesystem-utilities-test)
 
 (defparameter +test-content+ "Test content")
 (defparameter +source-content+ "Source content")
@@ -215,3 +216,6 @@
       (write-line +source-content+ source-stream)
       (force-output source-stream)
       (is (null (copy-if-newer source-path source-path))))))
+
+(defun run-tests ()
+  (run! 'filesystem-utilities-test))

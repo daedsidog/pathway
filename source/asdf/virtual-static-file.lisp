@@ -1,6 +1,13 @@
 ;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
 
-(in-package #:pathway/asdf)
+(defpackage #:pathway/asdf/virtual-static-file
+  (:use #:clean)
+  (:local-nicknames (#:pw #:pathway))
+  (:export #:extract-op
+           #:virtual-static-file
+           #:virtual-pathname))
+
+(in-package #:pathway/asdf/virtual-static-file)
 
 ;;; Operation
 
@@ -84,5 +91,3 @@ For plain components, returns the file path relative to the system source direct
 
 (defmethod asdf:perform ((op asdf:load-op) (c virtual-static-file))
   nil)
-
-(import 'virtual-static-file :asdf)

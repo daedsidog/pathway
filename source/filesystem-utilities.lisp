@@ -1,6 +1,17 @@
 ;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
 
-(in-package #:pathway)
+(defpackage #:pathway/filesystem-utilities
+  (:use #:clean)
+  (:import-from #:pathway/pathname-utilities
+                #:default-temporary-directory)
+  (:export #:file-age
+           #:copy-if-newer
+           #:with-cwd
+           #:with-transient-file
+           #:with-transient-directory
+           #:extract-from-archive))
+
+(in-package #:pathway/filesystem-utilities)
 
 (defun file-age (pathname)
   "Return the modification time (universal time) of the given PATHNAME."

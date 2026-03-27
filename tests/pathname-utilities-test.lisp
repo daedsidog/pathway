@@ -1,8 +1,12 @@
 ;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
 
-(in-package #:pathway/tests)
+(defpackage #:pathway/tests/pathname-utilities-test
+  (:use #:clean #:fiveam #:pathway)
+  (:export #:run-tests))
 
-(def-suite* pathname-test :in pathway-test)
+(in-package #:pathway/tests/pathname-utilities-test)
+
+(def-suite* pathname-utilities-test)
 
 (test pathname-resolution
   "Test pathname resolution functions."
@@ -26,3 +30,6 @@
   (is (equalp ""         (namestring (parent-directory "dir/file"))))
   (is (uiop:relative-pathname-p (parent-directory "file")))
   (is (uiop:relative-pathname-p (parent-directory ""))))
+
+(defun run-tests ()
+  (run! 'pathname-utilities-test))

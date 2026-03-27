@@ -1,12 +1,12 @@
 ;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
 
-(defpackage #:pathway/tests
-  (:use #:clean #:fiveam #:pathway)
+(uiop:define-package #:pathway/tests
+  (:use #:clean)
   (:export #:run-tests))
 
 (in-package #:pathway/tests)
 
-(def-suite* pathway-test)
-
 (defun run-tests ()
-  (run! 'pathway-test))
+  (pathway/tests/pathname-utilities-test:run-tests)
+  (pathway/tests/filesystem-utilities-test:run-tests)
+  (pathway/tests/asdf/virtual-static-file-test:run-tests))

@@ -1,8 +1,13 @@
 ;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
 
-(in-package #:pathway/tests)
+(defpackage #:pathway/tests/asdf/virtual-static-file-test
+  (:use #:clean #:fiveam #:pathway #:pathway/asdf)
+  (:import-from #:pathway/tests/common #:+sleep-interval+)
+  (:export #:run-tests))
 
-(def-suite* asdf-test :in pathway-test)
+(in-package #:pathway/tests/asdf/virtual-static-file-test)
+
+(def-suite* virtual-static-file-test)
 
 (defparameter +fixture-asd+
   (merge-pathnames "tests/asdf/fixtures/test-system-asdf.lisp"
@@ -149,3 +154,6 @@
               (signals error (asdf:perform op component))
            (rename-file backup archive)))
     (cleanup-fixture)))
+
+(defun run-tests ()
+  (run! 'virtual-static-file-test))
