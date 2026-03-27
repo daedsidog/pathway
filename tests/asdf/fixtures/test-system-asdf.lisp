@@ -3,5 +3,7 @@
 (defsystem #:pathway-test-mapped
   :defsystem-depends-on ("pathway/asdf")
   :components
-  ((:mapped-static-file "test-archive.zip/test.txt"
-    :target-pathname "test.txt")))
+  ((:virtual-static-file "test-archive.zip/archived-test-file.txt"
+    :virtual-pathname "archived-test-file.txt")
+   (:virtual-static-file "unarchived-test-file.txt"
+    :virtual-pathname "unarchived-test-file.txt")))

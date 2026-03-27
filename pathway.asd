@@ -12,7 +12,7 @@
   :components ((:module "source"
                 :components ((:module "asdf"
                               :components ((:file "package")
-                                           (:file "mapped-static-file")))))))
+                                           (:file "virtual-static-file")))))))
 
 (defsystem #:pathway/tests
   :depends-on (#:pathway #:pathway/asdf #:fiveam #:closer-mop)
@@ -22,4 +22,4 @@
                              (:file "pathname-utilities-test")
                              (:file "filesystem-utilities-test")
                              (:module "asdf"
-                               :components ((:file "mapped-static-file-test")))))))
+                               :components ((:file "virtual-static-file-test")))))))

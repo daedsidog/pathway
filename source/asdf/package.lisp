@@ -4,7 +4,7 @@
   (:use #:clean)
   (:local-nicknames (#:pw #:pathway))
   (:export #:extract-op
-           #:mapped-static-file
-           #:target-pathname))
+           #:virtual-static-file
+           #:virtual-pathname))
 
 (in-package #:pathway/asdf)
