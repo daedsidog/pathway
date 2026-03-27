@@ -11,7 +11,10 @@
            #:file-base
            #:user-home-directory
            #:default-temporary-directory
-           #:default-cache-directory))
+           #:default-cache-directory
+           #:virtual-root-pathname
+           #:*virtual-root-pathname-resolver*
+           #:+default-virtual-root-pathname-resolver+))
 
 (in-package #:pathway/pathname-utilities)
 
@@ -91,3 +94,16 @@
     (if subdirectory
         (uiop:ensure-directory-pathname (merge-pathnames subdirectory cache-directory))
         cache-directory)))
+
+(defparameter +default-virtual-root-pathname-resolver+
+  (lambda ()
+    (default-cache-directory
+      (make-pathname :directory '(:relative "Pathway"))))
+  "Default resolver returning the Pathway cache directory")
+
+(defvar *virtual-root-pathname-resolver* +default-virtual-root-pathname-resolver+
+  "Designator for a function of zero arguments returning the virtual root directory pathname")
+
+(defun virtual-root-pathname ()
+  "Return the virtual root directory pathname by calling *VIRTUAL-ROOT-PATHNAME-RESOLVER*."
+  (funcall *virtual-root-pathname-resolver*))

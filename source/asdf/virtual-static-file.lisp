@@ -43,9 +43,10 @@ Supports both archived files (name contains .zip/) and plain files."))
               (subseq name (1+ split-pos))))))
 
 (defun cache-directory (component)
-  (pw:default-cache-directory
-   (make-pathname :directory `(:relative ,(asdf:component-name
-                                            (asdf:component-system component))))))
+  (merge-pathnames
+    (make-pathname :directory `(:relative ,(asdf:component-name
+                                             (asdf:component-system component))))
+    (pw:virtual-root-pathname)))
 
 (defun source-pathname (component)
   "Return the source file pathname for COMPONENT.
@@ -81,7 +82,9 @@ For plain components, returns the file path relative to the system source direct
             (parse-archive-path (asdf:component-name c))
           (declare (ignore archive-relative))
           (pw:extract-from-archive source (list (cons internal-path output))))
-        (uiop:copy-file source output))))
+        (uiop:copy-file source output))
+    (setf (gethash (asdf:component-name c) pathway/pathname-utilities::*virtual-map-table*)
+          (virtual-pathname c))))
 
 (defmethod asdf:component-depends-on ((op asdf:load-op) (c virtual-static-file))
   `((extract-op ,c) ,@(call-next-method)))
