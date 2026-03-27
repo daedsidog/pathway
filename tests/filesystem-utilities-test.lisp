@@ -1,11 +1,12 @@
 ;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
 
-(in-package #:pathway/tests)
+(defpackage #:pathway/tests/filesystem-utilities-test
+  (:use #:clean #:fiveam #:pathway #:pathway/tests)
+  (:import-from #:pathway/tests/common #:+sleep-interval+))
+
+(in-package #:pathway/tests/filesystem-utilities-test)
 
 (def-suite* filesystem-test :in pathway-test)
-
-(defparameter +sleep-interval+ 1.5
-  "Sleep interval for tests needing timing differences, >1 second for FILE-WRITE-DATE resolution")
 
 (defparameter +test-content+ "Test content")
 (defparameter +source-content+ "Source content")

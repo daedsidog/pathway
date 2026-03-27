@@ -18,7 +18,8 @@
   :depends-on (#:pathway #:pathway/asdf #:fiveam #:closer-mop)
   :components ((:module "tests"
                 :serial t
-                :components ((:file "package")
+                :components ((:file "common")
+                             (:file "package")
                              (:file "pathname-utilities-test")
                              (:file "filesystem-utilities-test")
                              (:module "asdf"
