@@ -86,9 +86,7 @@ For plain components, returns the file path relative to the system source direct
             (parse-archive-path (asdf:component-name c))
           (declare (ignore archive-relative))
           (pw:extract-from-archive source (list (cons internal-path output))))
-        (uiop:copy-file source output))
-    (setf (gethash (pathname (asdf:component-name c)) *virtual-map-table*)
-          (pathname (virtual-pathname c)))))
+        (uiop:copy-file source output))))
 
 (defmethod asdf:component-depends-on ((op asdf:load-op) (c virtual-static-file))
   `((extract-op ,c) ,@(call-next-method)))
@@ -97,7 +95,8 @@ For plain components, returns the file path relative to the system source direct
   nil)
 
 (defmethod asdf:perform ((op asdf:load-op) (c virtual-static-file))
-  nil)
+  (setf (gethash (pathname (asdf:component-name c)) *virtual-map-table*)
+        (pathname (virtual-pathname c))))
 
 ;;; Map iteration
 
