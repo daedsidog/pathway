@@ -6,7 +6,12 @@
   (:export #:extract-op
            #:virtual-static-file
            #:virtual-pathname
-           #:virtual-pathname-map))
+           #:virtual-pathname-map
+           #:*virtual-map-table*
+           #:archive-component-p
+           #:parse-archive-path
+           #:cache-directory
+           #:source-pathname))
 
 (in-package #:pathway/asdf/virtual-static-file)
 
