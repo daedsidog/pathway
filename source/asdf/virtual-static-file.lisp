@@ -5,9 +5,13 @@
   (:local-nicknames (#:pw #:pathway))
   (:export #:extract-op
            #:virtual-static-file
-           #:virtual-pathname))
+           #:virtual-pathname
+           #:virtual-pathname-map))
 
 (in-package #:pathway/asdf/virtual-static-file)
+
+(defvar *virtual-map-table* (make-hash-table :test #'equal)
+  "Map from ASDF component names to virtual pathnames")
 
 ;;; Operation
 
@@ -33,8 +37,8 @@ Supports both archived files (name contains .zip/) and plain files."))
   "Parse component NAME into archive-relative and internal paths.
 
 <paths>         ::= (values <archive-path> <internal-path>)
-<archive-path>  ::= STRING
-<internal-path> ::= STRING"
+<archive-path>  ::= string
+<internal-path> ::= string"
   (let ((zip-pos (search ".zip/" name)))
     (unless zip-pos
       (error "Invalid archive component name: ~A" name))
@@ -83,8 +87,8 @@ For plain components, returns the file path relative to the system source direct
           (declare (ignore archive-relative))
           (pw:extract-from-archive source (list (cons internal-path output))))
         (uiop:copy-file source output))
-    (setf (gethash (asdf:component-name c) pathway/pathname-utilities::*virtual-map-table*)
-          (virtual-pathname c))))
+    (setf (gethash (pathname (asdf:component-name c)) *virtual-map-table*)
+          (pathname (virtual-pathname c)))))
 
 (defmethod asdf:component-depends-on ((op asdf:load-op) (c virtual-static-file))
   `((extract-op ,c) ,@(call-next-method)))
@@ -94,3 +98,13 @@ For plain components, returns the file path relative to the system source direct
 
 (defmethod asdf:perform ((op asdf:load-op) (c virtual-static-file))
   nil)
+
+;;; Map iteration
+
+(defun virtual-pathname-map (function)
+  "Apply FUNCTION to each mapping in the virtual pathname table:
+
+<function>           ::= (function (<component-pathname> <virtual-pathname>))
+<component-pathname> ::= pathname
+<virtual-pathname>   ::= pathname"
+  (maphash function *virtual-map-table*))
