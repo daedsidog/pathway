@@ -29,5 +29,6 @@
                              (:file "pathname-utilities-test")
                              (:file "filesystem-utilities-test")
                              (:module "asdf"
-                               :components ((:file "virtual-static-file-test")))
+                               :components ((:file "virtual-static-file-test")
+                                            (:file "virtual-static-directory-test")))
                              (:file "package")))))
