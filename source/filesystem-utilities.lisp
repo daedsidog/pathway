@@ -9,6 +9,7 @@
            #:with-cwd
            #:with-transient-file
            #:with-transient-directory
+           #:extract-archive
            #:extract-from-archive))
 
 (in-package #:pathway/filesystem-utilities)
@@ -21,7 +22,7 @@
   (file-write-date pathname))
 
 (defun copy-if-newer (source destination)
-  "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent, returning pathname or NIL."
+  "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent, returning pathname or nil."
   (check-type source (or string pathname))
   (check-type destination (or string pathname))
   (let* ((final-destination (if (and (uiop:directory-pathname-p destination)
@@ -88,32 +89,42 @@ FILE-HANDLE, & execute BODY, returning its result."
           (zerop exit-code))
       (error () nil))))
 
+(defun extract-archive (archive-path destination)
+  "Extract the full contents of ARCHIVE-PATH to DESTINATION directory."
+  (check-type archive-path (or string pathname))
+  (check-type destination (or string pathname))
+  (unless (probe-file archive-path)
+    (error "Archive not found: ~A" archive-path))
+  (unless (zip-file-p archive-path)
+    (error "Not a ZIP archive: ~A" archive-path))
+  (ensure-directories-exist destination)
+  (multiple-value-bind (output error-output exit-code)
+      (uiop:run-program
+        #+win32 (list "tar" "-xf" (namestring archive-path)
+                      "-C" (namestring destination))
+        #-win32 (list "unzip" "-q" "-o" (namestring archive-path)
+                      "-d" (namestring destination))
+        :ignore-error-status t)
+    (declare (ignore output error-output))
+    (unless (zerop exit-code)
+      (error "Failed to extract archive: ~A" archive-path)))
+  destination)
+
 (defun extract-from-archive (archive-path file-specs)
-  "Extract multiple files from an archive in a single operation, returning extracted pathnames.
+  "Extract specific files from an archive, returning extracted pathnames.
 
 <file-specs>           ::= ({<file-spec>}+)
 <file-spec>            ::= (<internal-pathname> . <destination-pathname>)
 <internal-pathname>    ::= pathname
 <destination-pathname> ::= pathname"
-  (check-type archive-path (or string pathname))
   (check-type file-specs list)
-  (unless (probe-file archive-path)
-    (error "Archive not found: ~A" archive-path))
-  (unless (zip-file-p archive-path)
-    (error "File is not a ZIP archive: ~A" archive-path))
   (with-transient-directory (temp-dir)
-    (multiple-value-bind (output error-output exit-code)
-        (uiop:run-program
-          #+win32 (list "tar" "-xf" (namestring archive-path) "-C" (namestring temp-dir))
-          #-win32 (list "unzip" "-q" "-o" (namestring archive-path) "-d" (namestring temp-dir))
-          :ignore-error-status t)
-      (declare (ignore output error-output))
-      (unless (zerop exit-code)
-        (error "Failed to extract archive: ~A" archive-path)))
+    (extract-archive archive-path temp-dir)
     (loop :for (internal-path . destination) :in file-specs
           :for extracted-file := (merge-pathnames internal-path temp-dir)
           :do (unless (probe-file extracted-file)
-                (error "File ~A not found in ~A." internal-path archive-path))
-              (ensure-directories-exist (uiop:pathname-parent-directory-pathname destination))
+                (error "File '~A' not found in '~A'." internal-path archive-path))
+              (ensure-directories-exist
+                (uiop:pathname-parent-directory-pathname destination))
               (uiop:copy-file extracted-file destination)
           :collect destination)))

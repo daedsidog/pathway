@@ -6,7 +6,12 @@
   (:export #:extract-op
            #:virtual-static-file
            #:virtual-pathname
-           #:virtual-pathname-map))
+           #:virtual-pathname-map
+           #:*virtual-map-table*
+           #:archive-component-p
+           #:parse-archive-path
+           #:cache-directory
+           #:source-pathname))
 
 (in-package #:pathway/asdf/virtual-static-file)
 
@@ -47,6 +52,7 @@ Supports both archived files (name contains .zip/) and plain files."))
               (subseq name (1+ split-pos))))))
 
 (defun cache-directory (component)
+  "Return the system-specific cache directory under the virtual root for COMPONENT."
   (merge-pathnames
     (make-pathname :directory `(:relative ,(asdf:component-name
                                              (asdf:component-system component))))

@@ -83,7 +83,7 @@
 
 (let ((cache-directory nil))
   (defun default-cache-directory (&optional subdirectory)
-    "Return the user's cache directory as a pathname, optionally with a suffixed SUBDIRECTORY."
+    "Return the system cache directory as a pathname, optionally with a suffixed SUBDIRECTORY."
     (unless cache-directory
       (setf cache-directory
             #+win32
@@ -105,5 +105,5 @@
   "Designator for a function of zero arguments returning the virtual root directory pathname")
 
 (defun virtual-root-pathname ()
-  "Return the virtual root directory pathname by calling *VIRTUAL-ROOT-PATHNAME-RESOLVER*."
+  "Return the virtual root directory pathname."
   (funcall *virtual-root-pathname-resolver*))

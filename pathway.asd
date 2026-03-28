@@ -15,8 +15,11 @@
   :components ((:module "source"
                 :components ((:module "asdf"
                               :components ((:file "virtual-static-file")
+                                           (:file "virtual-static-directory"
+                                            :depends-on ("virtual-static-file"))
                                            (:file "package"
-                                            :depends-on ("virtual-static-file"))))))))
+                                            :depends-on ("virtual-static-file"
+                                                         "virtual-static-directory"))))))))
 
 (defsystem #:pathway/tests
   :depends-on (#:pathway #:pathway/asdf #:fiveam #:closer-mop)
@@ -26,5 +29,6 @@
                              (:file "pathname-utilities-test")
                              (:file "filesystem-utilities-test")
                              (:module "asdf"
-                               :components ((:file "virtual-static-file-test")))
+                               :components ((:file "virtual-static-file-test")
+                                            (:file "virtual-static-directory-test")))
                              (:file "package")))))
