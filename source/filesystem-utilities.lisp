@@ -22,7 +22,7 @@
   (file-write-date pathname))
 
 (defun copy-if-newer (source destination)
-  "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent, returning pathname or NIL."
+  "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent, returning pathname or nil."
   (check-type source (or string pathname))
   (check-type destination (or string pathname))
   (let* ((final-destination (if (and (uiop:directory-pathname-p destination)
@@ -123,7 +123,7 @@ FILE-HANDLE, & execute BODY, returning its result."
     (loop :for (internal-path . destination) :in file-specs
           :for extracted-file := (merge-pathnames internal-path temp-dir)
           :do (unless (probe-file extracted-file)
-                (error "File ~A not found in ~A." internal-path archive-path))
+                (error "File '~A' not found in '~A'." internal-path archive-path))
               (ensure-directories-exist
                 (uiop:pathname-parent-directory-pathname destination))
               (uiop:copy-file extracted-file destination)
