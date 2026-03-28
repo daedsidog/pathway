@@ -4,5 +4,3 @@
   (:use #:clean)
   (:use-reexport #:pathway/pathname-utilities
                  #:pathway/filesystem-utilities))
-
-(in-package #:pathway)
