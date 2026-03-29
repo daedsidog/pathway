@@ -31,8 +31,7 @@
                      :documentation
                      "Relative pathname of the file within the virtual root directory"))
   (:documentation
-   "A static file in the source tree, mapped to a cache location.
-Supports both archived files (name contains .zip/) and plain files."))
+   "A static file mapped to the virtual root pathname"))
 
 (defun archive-component-p (component)
   "Return T if COMPONENT names an archived file (contains .zip/ in the name)."
@@ -59,9 +58,8 @@ Supports both archived files (name contains .zip/) and plain files."))
     (pw:virtual-root-pathname)))
 
 (defun source-pathname (component)
-  "Return the source file pathname for COMPONENT.
-For archive components, returns the archive path on disk.
-For plain components, returns the file path relative to the system source directory."
+  "Return the source file pathname for COMPONENT, using archive paths for archive components and
+relative file paths for plain components."
   (let ((system (asdf:component-system component)))
     (if (archive-component-p component)
         (multiple-value-bind (archive-relative internal)

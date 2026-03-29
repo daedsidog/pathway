@@ -32,8 +32,8 @@
     (t segment)))
 
 (defun parse-wildcard (pattern-string)
-  "Convert PATTERN-STRING into a CL wildcard pathname, where an empty
-string or trailing path separator matches everything.
+  "Convert PATTERN-STRING into a CL wildcard pathname, where an empty string or trailing path
+separator matches everything.
 
 <result> ::= pathname"
   (cond
