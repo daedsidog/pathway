@@ -9,7 +9,7 @@
            #:cwd
            #:file-extension
            #:file-base
-           #:user-home-directory
+           #:user-homedir-pathname
            #:default-tempdir-pathname
            #:default-cachedir-pathname
            #:virtual-root-pathname
@@ -73,10 +73,6 @@
 
 (setf (fdefinition 'cwd) #'uiop:getcwd)
 
-(defun user-home-directory ()
-  "Return the user's home directory as a pathname."
-  (user-homedir-pathname))
-
 (defun default-tempdir-pathname ()
   "Return the system's temporary directory as a pathname."
   (uiop:default-temporary-directory))
@@ -88,9 +84,9 @@
       (setf cache-directory
             #+win32
             (or (ignore-errors (uiop:get-folder-path :appdata))
-                (merge-pathnames "AppData/Roaming/" (user-home-directory)))
+                (merge-pathnames "AppData/Roaming/" (user-homedir-pathname)))
             #-win32
-            (merge-pathnames ".cache/" (user-home-directory))))
+            (merge-pathnames ".cache/" (user-homedir-pathname))))
     (if subdirectory
         (uiop:ensure-directory-pathname (merge-pathnames subdirectory cache-directory))
         cache-directory)))
