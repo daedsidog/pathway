@@ -12,9 +12,7 @@
            #:user-homedir-pathname
            #:default-tempdir-pathname
            #:default-cachedir-pathname
-           #:virtual-root-pathname
-           #:*virtual-root-pathname-resolver*
-           #:+default-virtual-root-pathname-resolver+))
+           #:default-workspace-pathname))
 
 (in-package #:pathway/pathname-utilities)
 
@@ -91,15 +89,20 @@
         (uiop:ensure-directory-pathname (merge-pathnames subdirectory cache-directory))
         cache-directory)))
 
-(defparameter +default-virtual-root-pathname-resolver+
+(defvar *default-workspace-pathname-resolver*
   (lambda ()
-    (default-cachedir-pathname
-      (make-pathname :directory '(:relative "Pathway"))))
-  "Default resolver returning the Pathway cache directory")
+    (case uiop:*image-dumped-p*
+      (:executable
+       (uiop:pathname-directory-pathname
+         (let ((parsed (uiop:parse-native-namestring (uiop:argv0))))
+           (if (uiop:absolute-pathname-p parsed)
+               parsed
+               (uiop:truename* parsed)))))
+      (otherwise
+       (default-cachedir-pathname
+         (make-pathname :directory '(:relative "Pathway"))))))
+  "Designator for a function of zero arguments returning the workspace directory pathname")
 
-(defvar *virtual-root-pathname-resolver* +default-virtual-root-pathname-resolver+
-  "Designator for a function of zero arguments returning the virtual root directory pathname")
-
-(defun virtual-root-pathname ()
-  "Return the virtual root directory pathname."
-  (funcall *virtual-root-pathname-resolver*))
+(defun default-workspace-pathname ()
+  "Return the default workspace directory pathname."
+  (funcall *default-workspace-pathname-resolver*))

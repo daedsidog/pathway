@@ -3,17 +3,15 @@
 (defsystem #:pathway-test-mapped
   :defsystem-depends-on ("pathway/asdf")
   :components
-  ((:virtual-static-file "test-archive.zip/archived-test-file.txt"
-    :virtual-pathname "archived-test-file.txt")
-   (:virtual-static-file "unarchived-test-file.txt"
-    :virtual-pathname "unarchived-test-file.txt")))
+  ((:workspace-extract "test-archive.zip/archived-test-file.txt")
+   (:workspace-extract "unarchived-test-file.txt")))
 
 (defsystem #:pathway-test-directory
   :defsystem-depends-on ("pathway/asdf")
   :components
-  ((:virtual-static-directory "test-directory-archive.zip/"
-    :virtual-pathname "all/")
-   (:virtual-static-directory "test-directory-archive.zip/test-directory/"
-    :virtual-pathname "subtree/")
-   (:virtual-static-directory "test-directory-archive.zip/**/*.h"
-    :virtual-pathname "filtered/")))
+  ((:workspace-extract "test-directory-archive.zip/"
+    :workspace-pathname "all/")
+   (:workspace-extract "test-directory-archive.zip/test-directory/"
+    :workspace-pathname "subtree/")
+   (:workspace-extract "test-directory-archive.zip/**/*.h"
+    :workspace-pathname "filtered/")))

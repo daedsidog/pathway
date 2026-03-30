@@ -3,11 +3,13 @@
 (defpackage #:pathway/tests/common
   (:use #:clean)
   (:local-nicknames (#:pw #:pathway))
+  (:import-from #:pathway/pathname-utilities
+                #:*default-workspace-pathname-resolver*)
   (:export #:+sleep-interval+
            #:+fixture-asd+
            #:delete-if-exists
            #:backup-pathname
-           #:with-test-virtual-root))
+           #:with-test-workspace))
 
 (in-package #:pathway/tests/common)
 
@@ -32,22 +34,20 @@
                  #+win32 ".bak" #-win32 "")
     (uiop:pathname-directory-pathname pathname)))
 
-(defmacro with-test-virtual-root ((&key system-name) &body body)
-  "Execute BODY with a temporary virtual root, cleaning up afterward."
-  (with-gensyms (temp-dir old-resolver)
-    `(let ((,temp-dir (uiop:ensure-directory-pathname
-                        (merge-pathnames
-                          (make-pathname
-                            :directory `(:relative ,(symbol-name (gensym))))
-                          (pw:default-tempdir-pathname))))
-           (,old-resolver pw:*virtual-root-pathname-resolver*))
+(defmacro with-test-workspace ((&key system-name) &body body)
+  "Execute BODY with a temporary workspace, cleaning up afterward."
+  (with-gensyms (temp-dir)
+    `(let* ((,temp-dir (uiop:ensure-directory-pathname
+                         (merge-pathnames
+                           (make-pathname
+                             :directory `(:relative ,(symbol-name (gensym))))
+                           (pw:default-tempdir-pathname))))
+            (*default-workspace-pathname-resolver*
+              (lambda () ,temp-dir)))
        (ensure-directories-exist ,temp-dir)
-       (setf pw:*virtual-root-pathname-resolver*
-             (lambda () ,temp-dir))
        (asdf::load-asd +fixture-asd+)
        (unwind-protect
          (progn ,@body)
-         (setf pw:*virtual-root-pathname-resolver* ,old-resolver)
          ,@(when system-name
              `((asdf:clear-system ,system-name)))
          (ignore-errors

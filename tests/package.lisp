@@ -9,5 +9,4 @@
 (defun run-tests ()
   (pathway/tests/pathname-utilities-test:run-tests)
   (pathway/tests/filesystem-utilities-test:run-tests)
-  (pathway/tests/asdf/virtual-static-file-test:run-tests)
-  (pathway/tests/asdf/virtual-static-directory-test:run-tests))
+  (pathway/tests/asdf/workspace-extract-test:run-tests))
