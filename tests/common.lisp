@@ -39,7 +39,7 @@
                         (merge-pathnames
                           (make-pathname
                             :directory `(:relative ,(symbol-name (gensym))))
-                          (pw:default-temporary-directory))))
+                          (pw:default-tempdir-pathname))))
            (,old-resolver pw:*virtual-root-pathname-resolver*))
        (ensure-directories-exist ,temp-dir)
        (setf pw:*virtual-root-pathname-resolver*

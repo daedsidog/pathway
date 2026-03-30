@@ -77,7 +77,7 @@
 (test file-age-function
   "Test FILE-AGE function with existing and non-existing files."
   (signals error (file-age "/path/that/does/not/exist"))
-  (signals error (file-age (default-temporary-directory)))
+  (signals error (file-age (default-tempdir-pathname)))
   (with-transient-file temp-stream
     (let ((temp-path (pathname temp-stream)))
       (write-line +test-content+ temp-stream)
@@ -104,18 +104,18 @@
         (let ((second-age (file-age temp-path)))
           (is (>= second-age first-age)))))))
 
-(test default-cache-directory-function
-  "Test DEFAULT-CACHE-DIRECTORY function with and without subdirectories."
-  (let ((cache-dir (default-cache-directory)))
+(test default-cachedir-pathname-function
+  "Test DEFAULT-CACHEDIR-PATHNAME function with and without subdirectories."
+  (let ((cache-dir (default-cachedir-pathname)))
     (is (uiop:directory-pathname-p cache-dir))
     (is (probe-file cache-dir)))
-  (let ((cache-subdir (default-cache-directory "test/subdir")))
+  (let ((cache-subdir (default-cachedir-pathname "test/subdir")))
     (is (uiop:directory-pathname-p cache-subdir))
     (is (probe-file cache-subdir))
     (let ((cache-str (namestring cache-subdir)))
       (is (search "test" cache-str))
       (is (search "subdir" cache-str))))
-  (let ((nested-cache (default-cache-directory "deep/nested/subdirectory/path")))
+  (let ((nested-cache (default-cachedir-pathname "deep/nested/subdirectory/path")))
     (is (uiop:directory-pathname-p nested-cache))
     (is (probe-file nested-cache))
     (let ((cache-str (namestring nested-cache)))
@@ -123,20 +123,20 @@
       (is (search "nested" cache-str))
       (is (search "subdirectory" cache-str))
       (is (search "path" cache-str))))
-  (let ((special-cache (default-cache-directory "test-dir_with.special-chars")))
+  (let ((special-cache (default-cachedir-pathname "test-dir_with.special-chars")))
     (is (uiop:directory-pathname-p special-cache))
     (is (probe-file special-cache))
     (let ((cache-str (namestring special-cache)))
       (is (search "test-dir_with.special-chars" cache-str))))
-  (let ((cache1 (default-cache-directory "consistency-test"))
-        (cache2 (default-cache-directory "consistency-test")))
+  (let ((cache1 (default-cachedir-pathname "consistency-test"))
+        (cache2 (default-cachedir-pathname "consistency-test")))
     (is (string= (namestring cache1) (namestring cache2)))))
 
 (test copy-if-newer-function
   "Test COPY-IF-NEWER function with various scenarios."
   (with-transient-file source-stream
     (let ((source-path (pathname source-stream))
-          (dest-path   (merge-pathnames "dest-file.txt" (default-temporary-directory))))
+          (dest-path   (merge-pathnames "dest-file.txt" (default-tempdir-pathname))))
       (write-line +source-content+ source-stream)
       (force-output source-stream)
       (when (probe-file dest-path)
@@ -146,8 +146,8 @@
       (when (probe-file dest-path)
         (delete-file dest-path))))
   ;; Test: source newer than dest triggers copy
-  (let ((source-path (merge-pathnames "source-file2.txt" (default-temporary-directory)))
-        (dest-path   (merge-pathnames "dest-file2.txt" (default-temporary-directory))))
+  (let ((source-path (merge-pathnames "source-file2.txt" (default-tempdir-pathname)))
+        (dest-path   (merge-pathnames "dest-file2.txt" (default-tempdir-pathname))))
     (unwind-protect
          (progn
            ;; Create dest file first
@@ -168,7 +168,7 @@
       (when (probe-file dest-path) (delete-file dest-path))))
   (with-transient-file source-stream
     (let* ((source-path    (pathname source-stream))
-           (temp-dir       (merge-pathnames "test-dir/" (default-temporary-directory)))
+           (temp-dir       (merge-pathnames "test-dir/" (default-tempdir-pathname)))
            (expected-dest  (merge-pathnames (file-namestring source-path) temp-dir))
            (content        "File to directory content"))
       (write-line content source-stream)
@@ -184,7 +184,7 @@
         (delete-file expected-dest))))
   (with-transient-file source-stream
     (let ((source-path (pathname source-stream))
-          (dest-path   (merge-pathnames "newer-dest.txt" (default-temporary-directory)))
+          (dest-path   (merge-pathnames "newer-dest.txt" (default-tempdir-pathname)))
           (dest-content "Newer destination content"))
       (write-line +source-content+ source-stream)
       (force-output source-stream)
@@ -202,7 +202,7 @@
   (with-transient-file source-stream
     (let ((source-path-string (namestring (pathname source-stream)))
           (dest-path-string   (namestring (merge-pathnames "string-test.txt"
-                                                           (default-temporary-directory)))))
+                                                           (default-tempdir-pathname)))))
       (write-line +source-content+ source-stream)
       (force-output source-stream)
       (when (probe-file dest-path-string)

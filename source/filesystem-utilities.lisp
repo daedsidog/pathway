@@ -3,7 +3,7 @@
 (defpackage #:pathway/filesystem-utilities
   (:use #:clean)
   (:import-from #:pathway/pathname-utilities
-                #:default-temporary-directory)
+                #:default-tempdir-pathname)
   (:export #:file-age
            #:copy-if-newer
            #:with-cwd
@@ -53,7 +53,7 @@
 FILE-HANDLE, & execute BODY, returning its result."
   (let ((temp-pathname (gensym "TEMP-PATHNAME")))
     `(let ((,temp-pathname (merge-pathnames (symbol-name (gensym "TEMP"))
-                                            (default-temporary-directory))))
+                                            (default-tempdir-pathname))))
        (ensure-directories-exist ,temp-pathname)
        (unwind-protect
             (with-open-file (,file-handle ,temp-pathname
@@ -69,7 +69,7 @@ FILE-HANDLE, & execute BODY, returning its result."
   `(let ((,directory-var
            (merge-pathnames (make-pathname :directory
                                            `(:relative ,(symbol-name (gensym "TEMP-DIR"))))
-                            (default-temporary-directory))))
+                            (default-tempdir-pathname))))
      (ensure-directories-exist ,directory-var)
      (unwind-protect
           (progn ,@body)

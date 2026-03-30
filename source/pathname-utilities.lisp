@@ -10,8 +10,8 @@
            #:file-extension
            #:file-base
            #:user-home-directory
-           #:default-temporary-directory
-           #:default-cache-directory
+           #:default-tempdir-pathname
+           #:default-cachedir-pathname
            #:virtual-root-pathname
            #:*virtual-root-pathname-resolver*
            #:+default-virtual-root-pathname-resolver+))
@@ -77,12 +77,12 @@
   "Return the user's home directory as a pathname."
   (user-homedir-pathname))
 
-(defun default-temporary-directory ()
+(defun default-tempdir-pathname ()
   "Return the system's temporary directory as a pathname."
   (uiop:default-temporary-directory))
 
 (let ((cache-directory nil))
-  (defun default-cache-directory (&optional subdirectory)
+  (defun default-cachedir-pathname (&optional subdirectory)
     "Return the system cache directory as a pathname, optionally with a suffixed SUBDIRECTORY."
     (unless cache-directory
       (setf cache-directory
@@ -97,7 +97,7 @@
 
 (defparameter +default-virtual-root-pathname-resolver+
   (lambda ()
-    (default-cache-directory
+    (default-cachedir-pathname
       (make-pathname :directory '(:relative "Pathway"))))
   "Default resolver returning the Pathway cache directory")
 
