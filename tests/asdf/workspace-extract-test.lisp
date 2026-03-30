@@ -1,5 +1,3 @@
-;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
-
 (defpackage #:pathway/tests/asdf/workspace-extract-test
   (:use #:clean #:fiveam #:pathway #:pathway/asdf)
   (:import-from #:pathway/tests/common

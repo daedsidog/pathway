@@ -1,5 +1,3 @@
-;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
-
 (defpackage #:pathway/tests/filesystem-utilities-test
   (:use #:clean #:fiveam #:pathway)
   (:import-from #:pathway/tests/common #:+sleep-interval+)

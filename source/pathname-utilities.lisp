@@ -1,5 +1,3 @@
-;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
-
 (defpackage #:pathway/pathname-utilities
   (:use #:clean)
   (:export #:absolute-pathname

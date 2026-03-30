@@ -1,5 +1,3 @@
-;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
-
 (defpackage #:pathway/filesystem-utilities
   (:use #:clean)
   (:import-from #:pathway/pathname-utilities

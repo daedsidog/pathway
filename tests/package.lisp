@@ -1,5 +1,3 @@
-;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
-
 (uiop:define-package #:pathway/tests
   (:use #:clean)
   (:export #:run-tests))

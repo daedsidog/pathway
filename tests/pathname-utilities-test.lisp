@@ -1,5 +1,3 @@
-;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
-
 (defpackage #:pathway/tests/pathname-utilities-test
   (:use #:clean #:fiveam #:pathway)
   (:export #:run-tests))

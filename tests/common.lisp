@@ -1,5 +1,3 @@
-;;;; Copyright (C) 2026 DAEDSIDOG.  All rights reserved.
-
 (defpackage #:pathway/tests/common
   (:use #:clean)
   (:local-nicknames (#:pw #:pathway))

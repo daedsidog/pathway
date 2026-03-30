@@ -1,5 +1,3 @@
-;;;; Copyright (C) 2024 DAEDSIDOG.  All rights reserved.
-
 (defsystem #:pathway
   :depends-on (#:clean)
   :components ((:module "source"
