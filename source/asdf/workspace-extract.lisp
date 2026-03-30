@@ -286,3 +286,18 @@
                                                       (asdf:find-system sys)))
                                      :keyword)
                              files)))))
+
+(defmethod asdf:perform :before ((op asdf:program-op) (system asdf:system))
+  (let* ((exe (first (asdf:output-files op system)))
+         (target-dir (uiop:pathname-directory-pathname exe))
+         (ws (pw:default-workspace-pathname))
+         (components (remove-if-not
+                       (lambda (c) (typep c 'workspace-extract))
+                       (asdf:required-components system :other-systems t))))
+    (dolist (c components)
+      (dolist (file (component-workspace-files c))
+        (let* ((source (merge-pathnames file ws))
+               (dest (merge-pathnames file
+                                      (uiop:ensure-directory-pathname target-dir))))
+          (ensure-directories-exist dest)
+          (uiop:copy-file source dest))))))
