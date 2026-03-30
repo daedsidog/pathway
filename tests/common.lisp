@@ -4,12 +4,7 @@
   (:use #:clean)
   (:local-nicknames (#:pw #:pathway))
   (:import-from #:pathway/pathname-utilities
-                #:*default-workspace-pathname-resolver*)
-  (:export #:+sleep-interval+
-           #:+fixture-asd+
-           #:delete-if-exists
-           #:backup-pathname
-           #:with-test-workspace))
+                #:*default-workspace-pathname-resolver*))
 
 (in-package #:pathway/tests/common)
 
