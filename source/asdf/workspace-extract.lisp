@@ -236,3 +236,53 @@
 
 (defmethod asdf:perform ((op asdf:load-op) (c workspace-extract))
   nil)
+
+(defun component-workspace-files (component)
+  "Return workspace-relative namestrings for COMPONENT."
+  (if (glob-component-p component)
+      (let ((dir (output-directory component))
+            (ws (pw:default-workspace-pathname)))
+        (when (uiop:directory-exists-p dir)
+          (let ((results nil))
+            (labels ((walk (dir)
+                       (dolist (file (uiop:directory-files dir))
+                         (push (enough-namestring file ws) results))
+                       (dolist (sub (uiop:subdirectories dir))
+                         (walk sub))))
+              (walk dir))
+            (nreverse results))))
+      (let ((path (output-pathname component)))
+        (when (probe-file path)
+          (list (enough-namestring path (pw:default-workspace-pathname)))))))
+
+(defun collect-workspace-extracts (system)
+  "Return all WORKSPACE-EXTRACT components in SYSTEM."
+  (let ((results nil))
+    (labels ((walk (c)
+               (typecase c
+                 (workspace-extract (push c results))
+                 (asdf:parent-component
+                  (dolist (child (asdf:module-components c))
+                    (walk child))))))
+      (walk (asdf:find-system system)))
+    (nreverse results)))
+
+(defun system-workspace-files (&rest systems)
+  "Return workspace-relative namestrings for WORKSPACE-EXTRACT components in SYSTEMS:
+
+<result>          ::= <file-list> | <alist>
+<file-list>       ::= ({namestring}*)
+<alist>           ::= ((<system-keyword> . <file-list>)*)
+<system-keyword>  ::= keyword"
+  (flet ((system-files (system)
+           (loop :for c :in (collect-workspace-extracts system)
+                 :nconc (component-workspace-files c))))
+    (if (= 1 (length systems))
+        (system-files (first systems))
+        (loop :for sys :in systems
+              :for files := (system-files sys)
+              :when files
+              :collect (cons (intern (string-upcase (asdf:component-name
+                                                      (asdf:find-system sys)))
+                                     :keyword)
+                             files)))))
