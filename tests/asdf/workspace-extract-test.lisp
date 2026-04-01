@@ -18,6 +18,8 @@
 (defparameter +archive-input-search+ "test-archive.zip")
 (defparameter +plain-component-name+ "unarchived-test-file.txt")
 (defparameter +plain-expected-content+ +plain-component-name+)
+(defparameter +nested-component-name+ "subdir/nested-test-file.txt")
+(defparameter +nested-expected-content+ "nested-test-file.txt")
 
 (defun extract-op ()
   (asdf:make-operation 'pathway/asdf:extract-op))
@@ -105,6 +107,9 @@
 (define-extract-op-tests plain
   +plain-component-name+ +plain-expected-content+ +plain-component-name+)
 
+(define-extract-op-tests nested
+  +nested-component-name+ +nested-expected-content+ +nested-component-name+)
+
 (test missing-archive-signals-error
   "Verify that EXTRACT-OP signals an error when the archive does not exist."
   (with-test-workspace (:system-name +test-system-name+)
@@ -121,11 +126,14 @@
   "Verify that WORKSPACE-PATHNAME defaults correctly for different component types."
   (with-test-workspace (:system-name +test-system-name+)
     (let ((archived (fixture-component +test-component-name+))
-          (plain (fixture-component +plain-component-name+)))
+          (plain (fixture-component +plain-component-name+))
+          (nested (fixture-component +nested-component-name+)))
       (is (string= "archived-test-file.txt"
                     (pathway/asdf:workspace-pathname archived)))
       (is (string= "unarchived-test-file.txt"
-                    (pathway/asdf:workspace-pathname plain))))))
+                    (pathway/asdf:workspace-pathname plain)))
+      (is (string= "nested-test-file.txt"
+                    (pathway/asdf:workspace-pathname nested))))))
 
 (defparameter +dir-system-name+ "pathway-test-directory")
 (defparameter +subdirectory-name+ "test-directory")

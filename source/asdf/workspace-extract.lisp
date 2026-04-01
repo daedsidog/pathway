@@ -30,7 +30,9 @@
                   (if (wildcard-path-p internal)
                       ""
                       internal))
-                name)))))
+                (if (wildcard-path-p name)
+                    ""
+                    (file-namestring (pathname name))))))))
 
 (defun archive-path-p (name)
   "Return T if NAME references a file inside an archive."

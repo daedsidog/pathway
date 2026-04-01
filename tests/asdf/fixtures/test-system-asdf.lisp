@@ -2,7 +2,8 @@
   :defsystem-depends-on ("pathway/asdf")
   :components
   ((:workspace-extract "test-archive.zip/archived-test-file.txt")
-   (:workspace-extract "unarchived-test-file.txt")))
+   (:workspace-extract "unarchived-test-file.txt")
+   (:workspace-extract "subdir/nested-test-file.txt")))
 
 (defsystem #:pathway-test-directory
   :defsystem-depends-on ("pathway/asdf")
