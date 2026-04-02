@@ -287,7 +287,7 @@
                                      :keyword)
                              files)))))
 
-(defmethod asdf:perform :before ((op asdf:program-op) (system asdf:system))
+(defmethod asdf:perform :before ((op asdf:image-op) (system asdf:system))
   (let* ((exe (first (asdf:output-files op system)))
          (target-dir (uiop:pathname-directory-pathname exe))
          (ws (pw:default-workspace-pathname))
