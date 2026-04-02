@@ -116,7 +116,7 @@
          :directory `(:relative ,@dir-components)
          :name (if (string= name "*") :wild name)
          :type (cond
-                 ((null type) :wild)
+                 ((nullp type) :wild)
                  ((string= type "*") :wild)
                  (t type)))))))
 

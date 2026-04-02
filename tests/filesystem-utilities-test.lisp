@@ -83,7 +83,7 @@
       (let ((age (file-age temp-path)))
         (is (not (nullp age)))
         (is (integerp age))
-        (is (< (- (get-universal-time) age) 60)))))
+        (is (< (- (universal-time) age) 60)))))
   (with-transient-file temp-stream
     (let ((temp-path-string (namestring (pathname temp-stream))))
       (write-line +test-content+ temp-stream)
@@ -192,7 +192,7 @@
                                    :if-exists :supersede
                                    :if-does-not-exist :create)
         (write-line dest-content dest-stream))
-      (is (null (copy-if-newer source-path dest-path)))
+      (is (nullp (copy-if-newer source-path dest-path)))
       (with-open-file (dest-stream dest-path :direction :input)
         (is (string= dest-content (read-line dest-stream))))
       (when (probe-file dest-path)
@@ -213,7 +213,7 @@
     (let ((source-path (pathname source-stream)))
       (write-line +source-content+ source-stream)
       (force-output source-stream)
-      (is (null (copy-if-newer source-path source-path))))))
+      (is (nullp (copy-if-newer source-path source-path))))))
 
 (defun run-tests ()
   (run! 'filesystem-utilities-test))
