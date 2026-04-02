@@ -98,7 +98,10 @@
                (uiop:truename* parsed)))))
       (otherwise
        (default-cachedir-pathname
-         (make-pathname :directory '(:relative "Pathway"))))))
+         (make-pathname :directory
+           (list :relative
+                 #+win32 "Pathway"
+                 #-win32 "pathway"))))))
   "Designator for a function of zero arguments returning the workspace directory pathname")
 
 (defun default-workspace-pathname ()
