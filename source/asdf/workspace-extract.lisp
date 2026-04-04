@@ -138,6 +138,12 @@
       (subseq path (length prefix))
       path))
 
+(defun ensure-relative-pathname (pathname)
+  "Normalize PATHNAME to have an explicit relative directory."
+  (if (pathname-directory pathname)
+      pathname
+      (make-pathname :directory '(:relative) :defaults pathname)))
+
 (defun collect-matching-files (directory wildcard)
   "Collect files under DIRECTORY matching WILDCARD."
   (let ((results nil)
@@ -145,7 +151,9 @@
     (labels ((walk (dir)
                (dolist (entry (uiop:directory-files dir))
                  (let ((relative (enough-namestring entry directory)))
-                   (when (pathname-match-p (pathname relative) wildcard)
+                   (when (pathname-match-p
+                           (ensure-relative-pathname (pathname relative))
+                           wildcard)
                      (push (cons relative entry) results))))
                (dolist (subdir (uiop:subdirectories dir))
                  (walk subdir))))
@@ -237,16 +245,31 @@
 (defmethod asdf:perform ((op asdf:load-op) (c workspace-extract))
   nil)
 
+(defun component-wildcard (component)
+  "Return the CL wildcard pathname for a glob COMPONENT."
+  (let ((name (asdf:component-name component)))
+    (if (archive-path-p name)
+        (multiple-value-bind (archive internal)
+            (parse-archive-path name)
+          (declare (ignore archive))
+          (parse-wildcard internal))
+        (parse-wildcard name))))
+
 (defun component-workspace-files (component)
   "Return workspace-relative namestrings for COMPONENT."
   (if (glob-component-p component)
       (let ((dir (output-directory component))
-            (ws (pw:default-workspace-pathname)))
+            (ws (pw:default-workspace-pathname))
+            (wildcard (component-wildcard component)))
         (when (uiop:directory-exists-p dir)
           (let ((results nil))
             (labels ((walk (dir)
                        (dolist (file (uiop:directory-files dir))
-                         (push (enough-namestring file ws) results))
+                         (let ((relative (enough-namestring file ws)))
+                           (when (pathname-match-p
+                                   (ensure-relative-pathname (pathname relative))
+                                   wildcard)
+                             (push relative results))))
                        (dolist (sub (uiop:subdirectories dir))
                          (walk sub))))
               (walk dir))
