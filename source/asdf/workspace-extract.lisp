@@ -160,14 +160,20 @@
       (walk directory))
     (nreverse results)))
 
+(defun file-up-to-date-p (source dest)
+  "Return T when DEST exists and is at least as new as SOURCE."
+  (and (probe-file dest)
+       (>= (file-write-date dest) (file-write-date source))))
+
 (defun copy-matching-files (source-dir output-dir wildcard
                             &optional (prefix ""))
   "Copy files matching WILDCARD from SOURCE-DIR to OUTPUT-DIR, stripping PREFIX."
   (dolist (pair (collect-matching-files source-dir wildcard))
     (let* ((relative (strip-prefix (car pair) prefix))
            (dest (merge-pathnames relative output-dir)))
-      (ensure-directories-exist dest)
-      (uiop:copy-file (cdr pair) dest))))
+      (unless (file-up-to-date-p (cdr pair) dest)
+        (ensure-directories-exist dest)
+        (uiop:copy-file (cdr pair) dest)))))
 
 (defun glob-component-p (component)
   "Return T if COMPONENT uses a glob pattern."
