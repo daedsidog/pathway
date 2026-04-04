@@ -310,6 +310,11 @@
                                      :keyword)
                              files)))))
 
+(defun root-level-file-p (namestring)
+  "Return T when NAMESTRING has no directory components."
+  (let ((dir (pathname-directory (pathname namestring))))
+    (or (null dir) (equal dir '(:relative)))))
+
 (defmethod asdf:perform :before ((op asdf:image-op) (system asdf:system))
   (let* ((exe (first (asdf:output-files op system)))
          (target-dir (uiop:pathname-directory-pathname exe))
@@ -317,10 +322,11 @@
          (components (remove-if-not
                        (lambda (c) (typep c 'workspace-extract))
                        (asdf:required-components system :other-systems t))))
+    (ensure-directories-exist exe)
     (dolist (c components)
       (dolist (file (component-workspace-files c))
-        (let* ((source (merge-pathnames file ws))
-               (dest (merge-pathnames file
-                                      (uiop:ensure-directory-pathname target-dir))))
-          (ensure-directories-exist dest)
-          (uiop:copy-file source dest))))))
+        (when (root-level-file-p file)
+          (let* ((source (merge-pathnames file ws))
+                 (dest (merge-pathnames file
+                                        (uiop:ensure-directory-pathname target-dir))))
+            (uiop:copy-file source dest)))))))
