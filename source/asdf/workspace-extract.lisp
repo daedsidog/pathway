@@ -8,15 +8,15 @@
 (in-package #:pathway/asdf/workspace-extract)
 
 (defclass extract-op (asdf:non-propagating-operation) ()
-  (:documentation "Extraction operation for WORKSPACE-EXTRACT components"))
+  (:documentation "Extraction operation for WORKSPACE-EXTRACT components."))
 
 (defclass workspace-extract (asdf:file-component)
   ((type :initform nil)
    (workspace-pathname :initarg       :workspace-pathname
                        :reader        workspace-pathname
-                       :documentation "Relative pathname within the workspace directory"))
+                       :documentation "Relative pathname within the workspace directory."))
   (:documentation
-   "Component extracting files from archives or directories into the system workspace"))
+   "Component extracting files from archives or directories into the system workspace."))
 
 (defmethod shared-initialize :after ((c workspace-extract) slot-names &key)
   (declare (ignore slot-names))

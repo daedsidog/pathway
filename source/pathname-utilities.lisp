@@ -102,7 +102,7 @@
            (list :relative
                  #+win32 "Pathway"
                  #-win32 "pathway"))))))
-  "Designator for a function of zero arguments returning the workspace directory pathname")
+  "Designator for a function of zero arguments returning the workspace directory pathname.")
 
 (defun default-workspace-pathname ()
   "Return the default workspace directory pathname."

@@ -7,12 +7,12 @@
 (in-package #:pathway/tests/common)
 
 (defparameter +sleep-interval+ 1.5
-  "Delay to ensure FILE-WRITE-DATE granularity in staleness tests")
+  "Delay to ensure FILE-WRITE-DATE granularity in staleness tests.")
 
 (defparameter +fixture-asd+
   (asdf:system-relative-pathname :pathway
                                  "tests/asdf/fixtures/test-system-asdf.lisp")
-  "Pathname to the shared test fixture system definition")
+  "Pathname to the shared test fixture system definition.")
 
 (defun delete-if-exists (pathname)
   (when (probe-file pathname)
