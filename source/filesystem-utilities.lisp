@@ -111,10 +111,8 @@ FILE-HANDLE, & execute BODY, returning its result."
 (defun extract-from-archive (archive-path file-specs)
   "Extract specific files from an archive, returning extracted pathnames.
 
-<file-specs>           ::= ({<file-spec>}+)
-<file-spec>            ::= (<internal-pathname> . <destination-pathname>)
-<internal-pathname>    ::= pathname
-<destination-pathname> ::= pathname"
+FILE-SPECS is a list of conses where each CAR is the internal archive pathname and each CDR is the
+destination pathname."
   (check-type file-specs list)
   (with-transient-directory (temp-dir)
     (extract-archive archive-path temp-dir)

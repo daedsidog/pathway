@@ -45,11 +45,7 @@
       (char= (char path (1- (length path))) #\/)))
 
 (defun parse-archive-path (name)
-  "Parse NAME into archive and internal paths.
-
-<paths>         ::= (values <archive-path> <internal-path>)
-<archive-path>  ::= string
-<internal-path> ::= string"
+  "Parse NAME into archive and internal paths, returning both as strings."
   (let ((zip-pos (search ".zip/" name)))
     (unless zip-pos
       (error "Invalid archive component name: ~A" name))
@@ -297,12 +293,10 @@
     (nreverse results)))
 
 (defun system-workspace-files (&rest systems)
-  "Return workspace-relative namestrings for WORKSPACE-EXTRACT components in SYSTEMS:
+  "Return workspace-relative namestrings for WORKSPACE-EXTRACT components in SYSTEMS.
 
-<result>          ::= <file-list> | <alist>
-<file-list>       ::= ({namestring}*)
-<alist>           ::= ((<system-keyword> . <file-list>)*)
-<system-keyword>  ::= keyword"
+For a single system, return a flat list of namestrings.  For multiple systems, return an alist keyed
+by system keyword."
   (flet ((system-files (system)
            (loop :for c :in (collect-workspace-extracts system)
                  :nconc (component-workspace-files c))))
