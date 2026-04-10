@@ -23,11 +23,11 @@
   "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent, returning pathname or nil."
   (check-type source (or string pathname))
   (check-type destination (or string pathname))
-  (let* ((final-destination (if (and (uiop:directory-pathname-p destination)
-                                     (not (uiop:directory-pathname-p source)))
-                                (merge-pathnames (file-namestring source) destination)
-                                destination))
-         (should-copy nil))
+  (let ((final-destination (if (and (uiop:directory-pathname-p destination)
+                                    (not (uiop:directory-pathname-p source)))
+                               (merge-pathnames (file-namestring source) destination)
+                               destination))
+        (should-copy nil))
     (when (uiop:pathname-equal source final-destination)
       (return-from copy-if-newer nil))
     (handler-case

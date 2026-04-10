@@ -233,9 +233,9 @@
                 (first (asdf:input-files (asdf:make-operation 'extract-op) component))
                 temp-dir)
               (copy-matching-files temp-dir output-dir wildcard prefix))))
-        (let* ((source-dir (uiop:pathname-directory-pathname
-                             (source-pathname component)))
-               (pattern-string (asdf:component-name component)))
+        (let ((source-dir (uiop:pathname-directory-pathname
+                            (source-pathname component)))
+              (pattern-string (asdf:component-name component)))
           (copy-matching-files source-dir output-dir
                               (parse-wildcard pattern-string))))))
 
@@ -332,7 +332,7 @@
     (dolist (c components)
       (dolist (file (component-workspace-files c))
         (when (root-level-file-p file)
-          (let* ((source (merge-pathnames file ws))
-                 (dest (merge-pathnames file
-                                        (uiop:ensure-directory-pathname target-dir))))
+          (let ((source (merge-pathnames file ws))
+                (dest (merge-pathnames file
+                                       (uiop:ensure-directory-pathname target-dir))))
             (uiop:copy-file source dest)))))))

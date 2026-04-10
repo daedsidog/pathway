@@ -26,8 +26,8 @@
   (check-type pathname (or string pathname))
   (if (uiop:relative-pathname-p pathname)
       pathname
-      (let* ((cwd      (uiop:getcwd))
-             (absolute (uiop:absolute-pathname-p pathname)))
+      (let ((cwd      (uiop:getcwd))
+            (absolute (uiop:absolute-pathname-p pathname)))
         (if absolute
             (uiop:parse-native-namestring
              (subseq (uiop:native-namestring pathname)
@@ -79,7 +79,8 @@
     (unless cache-directory
       (setf cache-directory
             #+win32
-            (or (ignore-errors (uiop:get-folder-path :appdata))
+            (or (handler-case (uiop:get-folder-path :appdata)
+                  (error () nil))
                 (merge-pathnames "AppData/Roaming/" (user-homedir-pathname)))
             #-win32
             (merge-pathnames ".cache/" (user-homedir-pathname))))
