@@ -1,4 +1,7 @@
 (defsystem "pathway"
+  :description "Pathname & filesystem utilities."
+  :author "Jan Jouleodov"
+  :license "MIT"
   :depends-on ("clean")
   :components ((:module "source"
                 :components ((:file "pathname-utilities")
