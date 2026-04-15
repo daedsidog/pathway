@@ -207,13 +207,14 @@
   "Extract or copy a single file into the workspace."
   (let ((source (first (asdf:input-files (asdf:make-operation 'extract-op) component)))
         (output (output-pathname component)))
-    (ensure-directories-exist output)
-    (if (archive-path-p (asdf:component-name component))
-        (multiple-value-bind (archive-relative internal-path)
-            (parse-archive-path (asdf:component-name component))
-          (declare (ignore archive-relative))
-          (pw:extract-from-archive source (list (cons internal-path output))))
-        (uiop:copy-file source output))))
+    (unless (file-up-to-date-p source output)
+      (ensure-directories-exist output)
+      (if (archive-path-p (asdf:component-name component))
+          (multiple-value-bind (archive-relative internal-path)
+              (parse-archive-path (asdf:component-name component))
+            (declare (ignore archive-relative))
+            (pw:extract-from-archive source (list (cons internal-path output))))
+          (uiop:copy-file source output)))))
 
 (defun perform-glob-extract (component)
   "Extract or copy matching files into the workspace."
