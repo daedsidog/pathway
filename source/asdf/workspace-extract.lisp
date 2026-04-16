@@ -1,6 +1,7 @@
 (defpackage #:pathway/asdf/workspace-extract
   (:use #:clean)
   (:local-nicknames (#:pw #:pathway))
+  (:import-from #:pathway/pathname-utilities #:*default-workspace-pathname-resolver*)
   (:export #:extract-op
            #:workspace-extract
            #:workspace-pathname))
@@ -330,4 +331,13 @@ by system keyword."
           (let ((source (merge-pathnames file ws))
                 (dest (merge-pathnames file
                                        (uiop:ensure-directory-pathname target-dir))))
-            (uiop:copy-file source dest)))))))
+            (uiop:copy-file source dest)))))
+    (setf *default-workspace-pathname-resolver*
+          (lambda ()
+            (uiop:pathname-directory-pathname
+              (or #+sbcl sb-ext:*runtime-pathname*
+                  (let ((parsed (uiop:parse-native-namestring
+                                  (first (uiop:raw-command-line-arguments)))))
+                    (if (uiop:absolute-pathname-p parsed)
+                        parsed
+                        (merge-pathnames parsed (uiop:getcwd))))))))))
