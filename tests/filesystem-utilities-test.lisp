@@ -7,6 +7,9 @@
 
 (def-suite* filesystem-utilities-test)
 
+(define-condition test-error (error) ()
+  (:documentation "Error signaled deliberately in tests."))
+
 (defparameter +test-content+ "Test content")
 (defparameter +source-content+ "Source content")
 
@@ -27,7 +30,7 @@
         (with-transient-file temp-stream
           (setf captured-pathname (pathname temp-stream))
           (write-line +test-content+ temp-stream)
-          (error "Test error"))
+          (error 'test-error))
       (error (e)
         (declare (ignore e))))
     (is (nullp (probe-file captured-pathname)))))

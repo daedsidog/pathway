@@ -6,7 +6,7 @@
 
 (in-package #:pathway/tests/common)
 
-(defparameter +sleep-interval+ 1.5
+(defparameter +sleep-interval+ (1+ 1)
   "Delay to ensure FILE-WRITE-DATE granularity in staleness tests.")
 
 (defparameter +fixture-asd+
@@ -38,7 +38,7 @@
             (*default-workspace-pathname-resolver*
               (lambda () ,temp-dir)))
        (ensure-directories-exist ,temp-dir)
-       (asdf::load-asd +fixture-asd+)
+       (asdf:load-asd +fixture-asd+)
        (unwind-protect
          (progn ,@body)
          ,@(when system-name

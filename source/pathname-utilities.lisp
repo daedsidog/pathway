@@ -14,6 +14,9 @@
 
 (in-package #:pathway/pathname-utilities)
 
+(define-condition pathname-error (simple-error) ()
+  (:documentation "Error signaled for invalid pathname operations."))
+
 (defun absolute-pathname (pathname)
   "Return the absolute pathname of the given PATHNAME."
   (check-type pathname (or string pathname))
@@ -32,7 +35,9 @@
             (uiop:parse-native-namestring
              (subseq (uiop:native-namestring pathname)
                      (length (uiop:native-namestring cwd))))
-            (error "~A is not an absolute or relative pathname." pathname)))))
+            (error 'pathname-error
+                   :format-control "'~A' is not an absolute or relative pathname."
+                   :format-arguments (list pathname))))))
 
 (defun pathname-stem (pathname)
   "Return the stem extracted of the provided PATHNAME."

@@ -290,7 +290,8 @@
                  (workspace-extract (push c results))
                  (asdf:parent-component
                   (dolist (child (asdf:module-components c))
-                    (walk child))))))
+                    (walk child)))
+                 (otherwise nil))))
       (walk (asdf:find-system system)))
     (nreverse results)))
 
@@ -331,7 +332,8 @@ by system keyword."
           (let ((source (merge-pathnames file ws))
                 (dest (merge-pathnames file
                                        (uiop:ensure-directory-pathname target-dir))))
-            (uiop:copy-file source dest)))))
+            (unless (file-up-to-date-p source dest)
+              (uiop:copy-file source dest))))))
     (setf *default-workspace-pathname-resolver*
           (lambda ()
             (uiop:pathname-directory-pathname

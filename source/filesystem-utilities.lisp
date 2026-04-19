@@ -12,11 +12,16 @@
 
 (in-package #:pathway/filesystem-utilities)
 
+(define-condition filesystem-error (simple-error) ()
+  (:documentation "Error signaled for invalid filesystem operations."))
+
 (defun file-age (pathname)
   "Return the modification time (universal time) of the given PATHNAME."
   (check-type pathname (or string pathname))
   (when (uiop:directory-pathname-p pathname)
-    (error "~A is a directory, not a file." pathname))
+    (error 'filesystem-error
+           :format-control "'~A' is a directory, not a file."
+           :format-arguments (list pathname)))
   (file-write-date pathname))
 
 (defun copy-if-newer (source destination)
@@ -119,7 +124,9 @@ destination pathname."
     (loop :for (internal-path . destination) :in file-specs
           :for extracted-file := (merge-pathnames internal-path temp-dir)
           :do (unless (probe-file extracted-file)
-                (error "File '~A' not found in '~A'." internal-path archive-path))
+                (error 'filesystem-error
+                       :format-control "File '~A' not found in '~A'."
+                       :format-arguments (list internal-path archive-path)))
               (ensure-directories-exist
                 (uiop:pathname-parent-directory-pathname destination))
               (uiop:copy-file extracted-file destination)
