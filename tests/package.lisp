@@ -7,4 +7,4 @@
 (defun run-tests ()
   (pathway/tests/pathname-utilities-test:run-tests)
   (pathway/tests/filesystem-utilities-test:run-tests)
-  (pathway/tests/asdf/workspace-extract-test:run-tests))
+  (pathway/tests/asdf/workspace-test:run-tests))

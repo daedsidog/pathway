@@ -1,21 +1,27 @@
-(defpackage #:pathway/asdf/workspace-extract
+(defpackage #:pathway/asdf/workspace
   (:use #:clean)
   (:local-nicknames (#:pw #:pathway))
   (:import-from #:pathway/pathname-utilities #:*default-workspace-pathname-resolver*)
   (:export #:extract-op
+           #:workspace-component
            #:workspace-extract
+           #:workspace-amalgam
            #:workspace-pathname))
 
-(in-package #:pathway/asdf/workspace-extract)
+(in-package #:pathway/asdf/workspace)
 
 (defclass extract-op (asdf:non-propagating-operation) ()
-  (:documentation "Extraction operation for WORKSPACE-EXTRACT components."))
+  (:documentation "Extraction operation for WORKSPACE-COMPONENT instances."))
 
-(defclass workspace-extract (asdf:file-component)
-  ((type :initform nil)
-   (workspace-pathname :initarg       :workspace-pathname
+(defclass workspace-component (asdf:component)
+  ((workspace-pathname :initarg       :workspace-pathname
                        :reader        workspace-pathname
                        :documentation "Relative pathname within the workspace directory."))
+  (:documentation
+   "Base component class for files produced into the system workspace."))
+
+(defclass workspace-extract (workspace-component asdf:file-component)
+  ((type :initform nil))
   (:documentation
    "Component extracting files from archives or directories into the system workspace."))
 
@@ -172,9 +178,14 @@
         (ensure-directories-exist dest)
         (uiop:copy-file (cdr pair) dest)))))
 
-(defun glob-component-p (component)
-  "Return T if COMPONENT uses a glob pattern."
-  (let ((name (asdf:component-name component)))
+(defgeneric glob-component-p (component)
+  (:documentation "Return T if COMPONENT produces multiple workspace files via a glob pattern."))
+
+(defmethod glob-component-p ((c workspace-component))
+  nil)
+
+(defmethod glob-component-p ((c workspace-extract))
+  (let ((name (asdf:component-name c)))
     (if (archive-path-p name)
         (multiple-value-bind (archive internal)
             (parse-archive-path name)
@@ -237,16 +248,16 @@
           (copy-matching-files source-dir output-dir
                               (parse-wildcard pattern-string))))))
 
-(defmethod asdf:component-depends-on ((op asdf:load-op) (c workspace-extract))
+(defmethod asdf:component-depends-on ((op asdf:load-op) (c workspace-component))
   `((extract-op ,c) ,@(call-next-method)))
 
-(defmethod asdf:output-files ((op asdf:operation) (c workspace-extract))
+(defmethod asdf:output-files ((op asdf:operation) (c workspace-component))
   (values nil t))
 
-(defmethod asdf:perform ((op asdf:compile-op) (c workspace-extract))
+(defmethod asdf:perform ((op asdf:compile-op) (c workspace-component))
   nil)
 
-(defmethod asdf:perform ((op asdf:load-op) (c workspace-extract))
+(defmethod asdf:perform ((op asdf:load-op) (c workspace-component))
   nil)
 
 (defun component-wildcard (component)
@@ -282,12 +293,12 @@
         (when (probe-file path)
           (list (enough-namestring path (pw:default-workspace-pathname)))))))
 
-(defun collect-workspace-extracts (system)
-  "Return all WORKSPACE-EXTRACT components in SYSTEM."
+(defun collect-workspace-components (system)
+  "Return all WORKSPACE-COMPONENT instances in SYSTEM."
   (let ((results nil))
     (labels ((walk (c)
                (typecase c
-                 (workspace-extract (push c results))
+                 (workspace-component (push c results))
                  (asdf:parent-component
                   (dolist (child (asdf:module-components c))
                     (walk child)))
@@ -296,12 +307,12 @@
     (nreverse results)))
 
 (defun system-workspace-files (&rest systems)
-  "Return workspace-relative namestrings for WORKSPACE-EXTRACT components in SYSTEMS.
+  "Return workspace-relative namestrings for WORKSPACE-COMPONENT instances in SYSTEMS.
 
 For a single system, return a flat list of namestrings.  For multiple systems, return an alist keyed
 by system keyword."
   (flet ((system-files (system)
-           (loop :for c :in (collect-workspace-extracts system)
+           (loop :for c :in (collect-workspace-components system)
                  :nconc (component-workspace-files c))))
     (if (= 1 (length systems))
         (system-files (first systems))
@@ -323,7 +334,7 @@ by system keyword."
          (target-dir (uiop:pathname-directory-pathname exe))
          (ws (pw:default-workspace-pathname))
          (components (remove-if-not
-                       (lambda (c) (typep c 'workspace-extract))
+                       (lambda (c) (typep c 'workspace-component))
                        (asdf:required-components system :other-systems t))))
     (ensure-directories-exist exe)
     (dolist (c components)
@@ -343,3 +354,87 @@ by system keyword."
                     (if (uiop:absolute-pathname-p parsed)
                         parsed
                         (merge-pathnames parsed (uiop:getcwd))))))))))
+
+(defclass workspace-amalgam (workspace-component)
+  ((parts :initarg :parts
+          :reader parts
+          :documentation
+          "Ordered source parts: a list of path strings or a single-directory glob string.
+Parts are concatenated in the order given; glob results are sorted lexicographically, so
+names must be zero-padded when the count exceeds 9."))
+  (:documentation
+   "Component assembling an ordered sequence of source parts into a single workspace file."))
+
+(defmethod shared-initialize :after ((c workspace-amalgam) slot-names &key)
+  (declare (ignore slot-names))
+  (unless (slot-boundp c 'workspace-pathname)
+    (setf (slot-value c 'workspace-pathname)
+          (file-namestring (pathname (asdf:component-name c))))))
+
+(defun resolve-parts-glob (glob-string source-dir)
+  "Return pathnames in SOURCE-DIR matching GLOB-STRING, sorted lexicographically."
+  (let* ((merged (uiop:merge-pathnames* glob-string source-dir))
+         (dir (uiop:pathname-directory-pathname merged))
+         (name (pathname-name merged))
+         (type (pathname-type merged))
+         (name-wild (if (and (stringp name) (find #\* name)) :wild name))
+         (type-wild (if (and (stringp type) (find #\* type)) :wild type))
+         (pattern (make-pathname :name name-wild :type type-wild)))
+    (sort (uiop:directory-files dir pattern) #'string< :key #'namestring)))
+
+(defun resolve-parts (component)
+  "Return an ordered list of source pathnames for COMPONENT."
+  (let* ((system (asdf:component-system component))
+         (source-dir (asdf:system-source-directory system))
+         (parts-spec (parts component)))
+    (if (listp parts-spec)
+        (mapcar (lambda (p) (uiop:merge-pathnames* p source-dir)) parts-spec)
+        (resolve-parts-glob parts-spec source-dir))))
+
+(defun make-amalgam-temp-pathname (component)
+  "Return a deterministic temp pathname for COMPONENT assembly."
+  (merge-pathnames
+    (make-pathname :name (format nil "~A-~A"
+                                 (asdf:component-name (asdf:component-system component))
+                                 (asdf:component-name component))
+                   :type "tmp")
+    (pw:default-tempdir-pathname)))
+
+(defun assemble-parts (parts output-path)
+  "Concatenate PARTS in order to OUTPUT-PATH."
+  (ensure-directories-exist output-path)
+  #+win32
+  (uiop:run-program
+    (format nil "copy /b ~{\"~A\"~^+~} \"~A\""
+            (mapcar #'uiop:native-namestring parts)
+            (uiop:native-namestring output-path))
+    :force-shell t
+    :output nil
+    :error-output nil)
+  #-win32
+  (uiop:run-program
+    (list* "cat" (mapcar #'uiop:native-namestring parts))
+    :output output-path
+    :error-output nil))
+
+(defmethod asdf:source-file-type ((c workspace-amalgam) (s asdf:system))
+  nil)
+
+(defmethod asdf:input-files ((op extract-op) (c workspace-amalgam))
+  (resolve-parts c))
+
+(defmethod asdf:output-files ((op extract-op) (c workspace-amalgam))
+  (values (list (output-pathname c)) t))
+
+(defmethod asdf:perform ((op extract-op) (c workspace-amalgam))
+  (let ((parts (resolve-parts c))
+        (output (output-pathname c))
+        (temp (make-amalgam-temp-pathname c)))
+    (ensure-directories-exist output)
+    (ensure-directories-exist temp)
+    (unwind-protect
+      (progn
+        (assemble-parts parts temp)
+        (uiop:copy-file temp output))
+      (when (probe-file temp)
+        (delete-file temp)))))

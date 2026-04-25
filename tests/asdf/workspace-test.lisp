@@ -1,4 +1,4 @@
-(defpackage #:pathway/tests/asdf/workspace-extract-test
+(defpackage #:pathway/tests/asdf/workspace-test
   (:use #:clean #:fiveam #:pathway #:pathway/asdf)
   (:import-from #:pathway/tests/common
                 #:+sleep-interval+
@@ -8,9 +8,9 @@
                 #:with-test-workspace)
   (:export #:run-tests))
 
-(in-package #:pathway/tests/asdf/workspace-extract-test)
+(in-package #:pathway/tests/asdf/workspace-test)
 
-(def-suite* workspace-extract-test)
+(def-suite* workspace-test)
 
 (defparameter +test-system-name+ "pathway-test-mapped")
 (defparameter +test-component-name+ "test-archive.zip/archived-test-file.txt")
@@ -198,5 +198,65 @@
       (asdf:load-system +dir-system-name+)
       (is (= mtime (file-write-date file))))))
 
+(defparameter +amalgam-system-name+ "pathway-test-amalgam")
+(defparameter +amalgam-glob-system-name+ "pathway-test-amalgam-glob")
+(defparameter +parts+ '("The quick" " brown fox"))
+
+(defun parts-assembled ()
+  "Return the string produced by concatenating +PARTS+."
+  (apply #'concatenate 'string +parts+))
+
+(defun write-part-file (path content)
+  "Write CONTENT to PATH."
+  (with-open-file (s path :direction :output
+                          :if-exists :supersede
+                          :if-does-not-exist :create)
+    (write-string content s)))
+
+(defun fixture-directory ()
+  "Return the directory containing ASDF fixture files."
+  (uiop:pathname-directory-pathname +fixture-asd+))
+
+(defmacro with-amalgam-test ((output-var &key (output-name "amalgam-test.txt")) &body body)
+  "Create fixture part files and set up a test workspace, binding OUTPUT-VAR to the output path."
+  (let ((p1 (gensym "P1"))
+        (p2 (gensym "P2")))
+    `(let ((,p1 (merge-pathnames "amalgam-test.part1" (fixture-directory)))
+           (,p2 (merge-pathnames "amalgam-test.part2" (fixture-directory))))
+       (write-part-file ,p1 (first +parts+))
+       (write-part-file ,p2 (second +parts+))
+       (unwind-protect
+         (with-test-workspace ()
+           (let ((,output-var (merge-pathnames ,output-name (default-workspace-pathname))))
+             ,@body))
+         (ignore-errors (delete-file ,p1))
+         (ignore-errors (delete-file ,p2))))))
+
+(test workspace-amalgam-list-parts
+  "Verify WORKSPACE-AMALGAM assembles an ordered list of parts into the workspace."
+  (with-amalgam-test (output)
+    (asdf:load-system +amalgam-system-name+)
+    (is (probe-file output))
+    (is (string= (parts-assembled) (uiop:read-file-string output)))))
+
+(test workspace-amalgam-glob-parts
+  "Verify WORKSPACE-AMALGAM assembles glob-matched parts into the workspace."
+  (with-amalgam-test (output :output-name "amalgam-glob-test.txt")
+    (asdf:load-system +amalgam-glob-system-name+)
+    (is (probe-file output))
+    (is (string= (parts-assembled) (uiop:read-file-string output)))))
+
+(test workspace-amalgam-staleness
+  "Verify ASDF skips re-assembly when the output is newer than all parts."
+  (with-amalgam-test (output)
+    (asdf:load-system +amalgam-system-name+)
+    (is (probe-file output))
+    (sleep +sleep-interval+)
+    (with-open-file (s output :direction :output :if-exists :append)
+      s)
+    (let ((mtime (file-write-date output)))
+      (asdf:load-system +amalgam-system-name+)
+      (is (= mtime (file-write-date output))))))
+
 (defun run-tests ()
-  (run! 'workspace-extract-test))
+  (run! 'workspace-test))

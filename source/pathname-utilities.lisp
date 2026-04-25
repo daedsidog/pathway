@@ -80,7 +80,7 @@
 
 (let ((cache-directory nil))
   (defun default-cachedir-pathname (&optional subdirectory)
-    "Return the system cache directory as a pathname, optionally with a suffixed SUBDIRECTORY."
+    "Return the system cache directory, creating SUBDIRECTORY within it when supplied."
     (unless cache-directory
       (setf cache-directory
             #+win32
@@ -90,7 +90,10 @@
             #-win32
             (merge-pathnames ".cache/" (user-homedir-pathname))))
     (if subdirectory
-        (uiop:ensure-directory-pathname (merge-pathnames subdirectory cache-directory))
+        (let ((path (uiop:ensure-directory-pathname
+                      (merge-pathnames subdirectory cache-directory))))
+          (ensure-directories-exist path)
+          path)
         cache-directory)))
 
 (defvar *default-workspace-pathname-resolver*
