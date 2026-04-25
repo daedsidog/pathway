@@ -1,21 +1,26 @@
-(defpackage #:pathway/asdf/workspace-extract
+(defpackage #:pathway/asdf/workspace
   (:use #:clean)
   (:local-nicknames (#:pw #:pathway))
   (:import-from #:pathway/pathname-utilities #:*default-workspace-pathname-resolver*)
   (:export #:extract-op
+           #:workspace-component
            #:workspace-extract
            #:workspace-pathname))
 
-(in-package #:pathway/asdf/workspace-extract)
+(in-package #:pathway/asdf/workspace)
 
 (defclass extract-op (asdf:non-propagating-operation) ()
-  (:documentation "Extraction operation for WORKSPACE-EXTRACT components."))
+  (:documentation "Extraction operation for WORKSPACE-COMPONENT instances."))
 
-(defclass workspace-extract (asdf:file-component)
-  ((type :initform nil)
-   (workspace-pathname :initarg       :workspace-pathname
+(defclass workspace-component (asdf:component)
+  ((workspace-pathname :initarg       :workspace-pathname
                        :reader        workspace-pathname
                        :documentation "Relative pathname within the workspace directory."))
+  (:documentation
+   "Base component class for files produced into the system workspace."))
+
+(defclass workspace-extract (workspace-component asdf:file-component)
+  ((type :initform nil))
   (:documentation
    "Component extracting files from archives or directories into the system workspace."))
 
@@ -172,9 +177,14 @@
         (ensure-directories-exist dest)
         (uiop:copy-file (cdr pair) dest)))))
 
-(defun glob-component-p (component)
-  "Return T if COMPONENT uses a glob pattern."
-  (let ((name (asdf:component-name component)))
+(defgeneric glob-component-p (component)
+  (:documentation "Return T if COMPONENT produces multiple workspace files via a glob pattern."))
+
+(defmethod glob-component-p ((c workspace-component))
+  nil)
+
+(defmethod glob-component-p ((c workspace-extract))
+  (let ((name (asdf:component-name c)))
     (if (archive-path-p name)
         (multiple-value-bind (archive internal)
             (parse-archive-path name)
@@ -237,16 +247,16 @@
           (copy-matching-files source-dir output-dir
                               (parse-wildcard pattern-string))))))
 
-(defmethod asdf:component-depends-on ((op asdf:load-op) (c workspace-extract))
+(defmethod asdf:component-depends-on ((op asdf:load-op) (c workspace-component))
   `((extract-op ,c) ,@(call-next-method)))
 
-(defmethod asdf:output-files ((op asdf:operation) (c workspace-extract))
+(defmethod asdf:output-files ((op asdf:operation) (c workspace-component))
   (values nil t))
 
-(defmethod asdf:perform ((op asdf:compile-op) (c workspace-extract))
+(defmethod asdf:perform ((op asdf:compile-op) (c workspace-component))
   nil)
 
-(defmethod asdf:perform ((op asdf:load-op) (c workspace-extract))
+(defmethod asdf:perform ((op asdf:load-op) (c workspace-component))
   nil)
 
 (defun component-wildcard (component)
@@ -282,12 +292,12 @@
         (when (probe-file path)
           (list (enough-namestring path (pw:default-workspace-pathname)))))))
 
-(defun collect-workspace-extracts (system)
-  "Return all WORKSPACE-EXTRACT components in SYSTEM."
+(defun collect-workspace-components (system)
+  "Return all WORKSPACE-COMPONENT instances in SYSTEM."
   (let ((results nil))
     (labels ((walk (c)
                (typecase c
-                 (workspace-extract (push c results))
+                 (workspace-component (push c results))
                  (asdf:parent-component
                   (dolist (child (asdf:module-components c))
                     (walk child)))
@@ -301,7 +311,7 @@
 For a single system, return a flat list of namestrings.  For multiple systems, return an alist keyed
 by system keyword."
   (flet ((system-files (system)
-           (loop :for c :in (collect-workspace-extracts system)
+           (loop :for c :in (collect-workspace-components system)
                  :nconc (component-workspace-files c))))
     (if (= 1 (length systems))
         (system-files (first systems))
@@ -323,7 +333,7 @@ by system keyword."
          (target-dir (uiop:pathname-directory-pathname exe))
          (ws (pw:default-workspace-pathname))
          (components (remove-if-not
-                       (lambda (c) (typep c 'workspace-extract))
+                       (lambda (c) (typep c 'workspace-component))
                        (asdf:required-components system :other-systems t))))
     (ensure-directories-exist exe)
     (dolist (c components)

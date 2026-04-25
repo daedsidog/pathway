@@ -1,4 +1,4 @@
-(defpackage #:pathway/tests/asdf/workspace-extract-test
+(defpackage #:pathway/tests/asdf/workspace-test
   (:use #:clean #:fiveam #:pathway #:pathway/asdf)
   (:import-from #:pathway/tests/common
                 #:+sleep-interval+
@@ -8,9 +8,9 @@
                 #:with-test-workspace)
   (:export #:run-tests))
 
-(in-package #:pathway/tests/asdf/workspace-extract-test)
+(in-package #:pathway/tests/asdf/workspace-test)
 
-(def-suite* workspace-extract-test)
+(def-suite* workspace-test)
 
 (defparameter +test-system-name+ "pathway-test-mapped")
 (defparameter +test-component-name+ "test-archive.zip/archived-test-file.txt")
@@ -199,4 +199,4 @@
       (is (= mtime (file-write-date file))))))
 
 (defun run-tests ()
-  (run! 'workspace-extract-test))
+  (run! 'workspace-test))

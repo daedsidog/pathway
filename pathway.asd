@@ -15,9 +15,9 @@
   :depends-on ("pathway")
   :components ((:module "source"
                 :components ((:module "asdf"
-                              :components ((:file "workspace-extract")
+                              :components ((:file "workspace")
                                            (:file "package"
-                                            :depends-on ("workspace-extract"))))))))
+                                            :depends-on ("workspace"))))))))
 
 (defsystem "pathway/tests"
   :depends-on ("pathway" "pathway/asdf" "fiveam" "closer-mop")
@@ -27,5 +27,5 @@
                              (:file "pathname-utilities-test")
                              (:file "filesystem-utilities-test")
                              (:module "asdf"
-                               :components ((:file "workspace-extract-test")))
+                               :components ((:file "workspace-test")))
                              (:file "package")))))

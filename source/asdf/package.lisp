@@ -1,6 +1,6 @@
 (uiop:define-package #:pathway/asdf
   (:use #:clean)
-  (:use-reexport #:pathway/asdf/workspace-extract))
+  (:use-reexport #:pathway/asdf/workspace))
 
 (in-package #:pathway/asdf)
 
