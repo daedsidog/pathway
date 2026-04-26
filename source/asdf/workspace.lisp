@@ -344,6 +344,8 @@ by system keyword."
                 (dest (merge-pathnames file
                                        (uiop:ensure-directory-pathname target-dir))))
             (unless (file-up-to-date-p source dest)
+              (when (probe-file dest)
+                (delete-file dest))
               (uiop:copy-file source dest))))))
     (setf *default-workspace-pathname-resolver*
           (lambda ()
@@ -435,6 +437,8 @@ names must be zero-padded when the count exceeds 9."))
     (unwind-protect
       (progn
         (assemble-parts parts temp)
+        (when (probe-file output)
+          (delete-file output))
         (uiop:copy-file temp output))
       (when (probe-file temp)
         (delete-file temp)))))
