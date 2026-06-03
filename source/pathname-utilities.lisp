@@ -80,7 +80,8 @@
 
 (let ((cache-directory nil))
   (defun default-cachedir-pathname (&optional subdirectory)
-    "Return the system cache directory, creating SUBDIRECTORY within it when supplied."
+    "Return the system cache directory, creating SUBDIRECTORY within it when
+supplied."
     (unless cache-directory
       (setf cache-directory
             #+win32
@@ -111,7 +112,8 @@
            (list :relative
                  #+win32 "Pathway"
                  #-win32 "pathway"))))))
-  "Designator for a function of zero arguments returning the workspace directory pathname.")
+  "Designator for a function of zero arguments returning the workspace directory
+pathname.")
 
 (defun default-workspace-pathname ()
   "Return the default workspace directory pathname."

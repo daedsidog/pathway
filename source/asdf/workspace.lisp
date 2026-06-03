@@ -16,14 +16,16 @@
 (defclass workspace-component (asdf:component)
   ((workspace-pathname :initarg       :workspace-pathname
                        :reader        workspace-pathname
-                       :documentation "Relative pathname within the workspace directory."))
+                       :documentation "Relative pathname within the workspace
+directory."))
   (:documentation
    "Base component class for files produced into the system workspace."))
 
 (defclass workspace-extract (workspace-component asdf:file-component)
   ((type :initform nil))
   (:documentation
-   "Component extracting files from archives or directories into the system workspace."))
+   "Component extracting files from archives or directories into the system
+workspace."))
 
 (defmethod shared-initialize :after ((c workspace-extract) slot-names &key)
   (declare (ignore slot-names))
@@ -170,7 +172,8 @@
 
 (defun copy-matching-files (source-dir output-dir wildcard
                             &optional (prefix ""))
-  "Copy files matching WILDCARD from SOURCE-DIR to OUTPUT-DIR, stripping PREFIX."
+  "Copy files matching WILDCARD from SOURCE-DIR to OUTPUT-DIR, stripping
+PREFIX."
   (dolist (pair (collect-matching-files source-dir wildcard))
     (let* ((relative (strip-prefix (car pair) prefix))
            (dest (merge-pathnames relative output-dir)))
@@ -179,7 +182,8 @@
         (uiop:copy-file (cdr pair) dest)))))
 
 (defgeneric glob-component-p (component)
-  (:documentation "Return T if COMPONENT produces multiple workspace files via a glob pattern."))
+  (:documentation "Return T if COMPONENT produces multiple workspace files via a
+glob pattern."))
 
 (defmethod glob-component-p ((c workspace-component))
   nil)
@@ -307,10 +311,11 @@
     (nreverse results)))
 
 (defun system-workspace-files (&rest systems)
-  "Return workspace-relative namestrings for WORKSPACE-COMPONENT instances in SYSTEMS.
+  "Return workspace-relative namestrings for WORKSPACE-COMPONENT instances in
+SYSTEMS.
 
-For a single system, return a flat list of namestrings.  For multiple systems, return an alist keyed
-by system keyword."
+For a single system, return a flat list of namestrings.  For multiple systems,
+return an alist keyed by system keyword."
   (flet ((system-files (system)
            (loop :for c :in (collect-workspace-components system)
                  :nconc (component-workspace-files c))))
@@ -361,11 +366,12 @@ by system keyword."
   ((parts :initarg :parts
           :reader parts
           :documentation
-          "Ordered source parts: a list of path strings or a single-directory glob string.
-Parts are concatenated in the order given; glob results are sorted lexicographically, so
-names must be zero-padded when the count exceeds 9."))
+          "Ordered source parts: a list of path strings or a single-directory
+glob string.  Parts are concatenated in the order given; glob results are sorted
+lexicographically, so names must be zero-padded when the count exceeds 9."))
   (:documentation
-   "Component assembling an ordered sequence of source parts into a single workspace file."))
+   "Component assembling an ordered sequence of source parts into a single
+workspace file."))
 
 (defmethod shared-initialize :after ((c workspace-amalgam) slot-names &key)
   (declare (ignore slot-names))
@@ -374,7 +380,8 @@ names must be zero-padded when the count exceeds 9."))
           (file-namestring (pathname (asdf:component-name c))))))
 
 (defun resolve-parts-glob (glob-string source-dir)
-  "Return pathnames in SOURCE-DIR matching GLOB-STRING, sorted lexicographically."
+  "Return pathnames in SOURCE-DIR matching GLOB-STRING, sorted
+lexicographically."
   (let* ((merged (uiop:merge-pathnames* glob-string source-dir))
          (dir (uiop:pathname-directory-pathname merged))
          (name (pathname-name merged))

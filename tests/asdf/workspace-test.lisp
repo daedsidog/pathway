@@ -123,7 +123,8 @@
         (rename-file backup archive)))))
 
 (test workspace-pathname-defaults
-  "Verify that WORKSPACE-PATHNAME defaults correctly for different component types."
+  "Verify that WORKSPACE-PATHNAME defaults correctly for different component
+types."
   (with-test-workspace (:system-name +test-system-name+)
     (let ((archived (fixture-component +test-component-name+))
           (plain (fixture-component +plain-component-name+))
@@ -218,7 +219,8 @@
   (uiop:pathname-directory-pathname +fixture-asd+))
 
 (defmacro with-amalgam-test ((output-var &key (output-name "amalgam-test.txt")) &body body)
-  "Create fixture part files and set up a test workspace, binding OUTPUT-VAR to the output path."
+  "Create fixture part files and set up a test workspace, binding OUTPUT-VAR to
+the output path."
   (let ((p1 (gensym "P1"))
         (p2 (gensym "P2")))
     `(let ((,p1 (merge-pathnames "amalgam-test.part1" (fixture-directory)))
@@ -233,7 +235,8 @@
          (ignore-errors (delete-file ,p2))))))
 
 (test workspace-amalgam-list-parts
-  "Verify WORKSPACE-AMALGAM assembles an ordered list of parts into the workspace."
+  "Verify WORKSPACE-AMALGAM assembles an ordered list of parts into the
+workspace."
   (with-amalgam-test (output)
     (asdf:load-system +amalgam-system-name+)
     (is (probe-file output))

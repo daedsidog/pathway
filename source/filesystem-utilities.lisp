@@ -25,7 +25,8 @@
   (file-write-date pathname))
 
 (defun copy-if-newer (source destination)
-  "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent, returning pathname or nil."
+  "Copy SOURCE to DESTINATION if SOURCE is newer or DESTINATION absent,
+returning pathname or nil."
   (check-type source (or string pathname))
   (check-type destination (or string pathname))
   (let ((final-destination (if (and (uiop:directory-pathname-p destination)
@@ -47,13 +48,14 @@
       final-destination)))
 
 (defmacro with-cwd (directory &body body)
-  "Return the result of executing BODY with DIRECTORY as the current working directory."
+  "Return the result of executing BODY with DIRECTORY as the current working
+directory."
   `(let ((*default-pathname-defaults* ,directory))
      ,@body))
 
 (defmacro with-transient-file (file-handle &body body)
-  "Create a transient file in the system transient directory, open it as a stream bound to
-FILE-HANDLE, & execute BODY, returning its result."
+  "Create a transient file in the system transient directory, open it as a
+stream bound to FILE-HANDLE, & execute BODY, returning its result."
   (let ((temp-pathname (gensym "TEMP-PATHNAME")))
     `(let ((,temp-pathname (merge-pathnames (symbol-name (gensym "TEMP"))
                                             (default-tempdir-pathname))))
@@ -68,7 +70,8 @@ FILE-HANDLE, & execute BODY, returning its result."
            (delete-file ,temp-pathname))))))
 
 (defmacro with-transient-directory ((directory-var) &body body)
-  "Return the result of executing BODY with a transient directory bound to DIRECTORY-VAR."
+  "Return the result of executing BODY with a transient directory bound to
+DIRECTORY-VAR."
   `(let ((,directory-var
            (merge-pathnames (make-pathname :directory
                                            `(:relative ,(symbol-name (gensym "TEMP-DIR"))))
@@ -116,8 +119,8 @@ FILE-HANDLE, & execute BODY, returning its result."
 (defun extract-from-archive (archive-path file-specs)
   "Extract specific files from an archive, returning extracted pathnames.
 
-FILE-SPECS is a list of conses where each CAR is the internal archive pathname and each CDR is the
-destination pathname."
+FILE-SPECS is a list of conses where each CAR is the internal archive pathname
+and each CDR is the destination pathname."
   (check-type file-specs list)
   (with-transient-directory (temp-dir)
     (extract-archive archive-path temp-dir)
