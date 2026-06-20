@@ -33,16 +33,16 @@ returning pathname or nil."
                                     (not (uiop:directory-pathname-p source)))
                                (merge-pathnames (file-namestring source) destination)
                                destination))
-        (should-copy nil))
+        (copy nil))
     (when (uiop:pathname-equal source final-destination)
       (return-from copy-if-newer nil))
     (handler-case
         (let ((dest-age (file-age final-destination)))
           (when (> (file-age source) dest-age)
-            (setf should-copy t)))
+            (setf copy t)))
       (error ()
-        (setf should-copy t)))
-    (when should-copy
+        (setf copy t)))
+    (when copy
       (ensure-directories-exist (uiop:pathname-parent-directory-pathname final-destination))
       (uiop:copy-file source final-destination)
       final-destination)))
