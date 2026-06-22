@@ -130,8 +130,8 @@ workspace."))
   (let ((segments (split-path-segments pattern-string "/")))
     (if (and segments
              (char= (char pattern-string (1- (length pattern-string))) #\/)
-             (notany (lambda (s) (or (string= s "*") (string= s "**")))
-                     segments))
+             (notanyp (lambda (s) (or (string= s "*") (string= s "**")))
+                      segments))
         pattern-string
         "")))
 
@@ -332,7 +332,7 @@ return an alist keyed by system keyword."
 (defun root-level-file-p (namestring)
   "Return T when NAMESTRING has no directory components."
   (let ((dir (pathname-directory (pathname namestring))))
-    (or (null dir) (equal dir '(:relative)))))
+    (or (nullp dir) (equalp dir '(:relative)))))
 
 (defmethod asdf:perform :before ((op asdf:image-op) (system asdf:system))
   (let* ((exe (first (asdf:output-files op system)))
