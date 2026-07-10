@@ -205,13 +205,16 @@ glob pattern."))
       (values nil t)
       (values (list (output-pathname c)) t)))
 
+(defun output-directory-up-to-date-p (component source)
+  "Return T when COMPONENT's output directory is at least as new as SOURCE."
+  (let ((output-dir (output-directory component)))
+    (and (uiop:directory-exists-p output-dir)
+         (>= (file-write-date output-dir)
+             (file-write-date source)))))
+
 (defmethod asdf:operation-done-p ((op extract-op) (c workspace-extract))
   (if (glob-component-p c)
-      (let ((archive (first (asdf:input-files op c)))
-            (output-dir (output-directory c)))
-        (and (uiop:directory-exists-p output-dir)
-             (>= (file-write-date output-dir)
-                 (file-write-date archive))))
+      (output-directory-up-to-date-p c (first (asdf:input-files op c)))
       (call-next-method)))
 
 (defmethod asdf:perform ((op extract-op) (c workspace-extract))
@@ -239,13 +242,17 @@ glob pattern."))
         (multiple-value-bind (archive-relative pattern-string)
             (parse-archive-path (asdf:component-name component))
           (declare (ignore archive-relative))
-          (let ((wildcard (parse-wildcard pattern-string))
-                (prefix (static-prefix pattern-string)))
-            (pw:with-transient-directory (temp-dir)
-              (pw:extract-archive
-                (first (asdf:input-files (asdf:make-operation 'extract-op) component))
-                temp-dir)
-              (copy-matching-files temp-dir output-dir wildcard prefix))))
+          ;; A forced build re-runs PERFORM, so each PERFORM re-checks
+          ;; staleness itself instead of trusting OPERATION-DONE-P.
+          (let ((archive (first (asdf:input-files
+                                  (asdf:make-operation 'extract-op)
+                                  component))))
+            (unless (output-directory-up-to-date-p component archive)
+              (let ((wildcard (parse-wildcard pattern-string))
+                    (prefix (static-prefix pattern-string)))
+                (pw:with-transient-directory (temp-dir)
+                  (pw:extract-archive archive temp-dir)
+                  (copy-matching-files temp-dir output-dir wildcard prefix))))))
         (let ((source-dir (uiop:pathname-directory-pathname
                             (source-pathname component)))
               (pattern-string (asdf:component-name component)))
@@ -437,15 +444,16 @@ lexicographically."
 
 (defmethod asdf:perform ((op extract-op) (c workspace-amalgam))
   (let ((parts (resolve-parts c))
-        (output (output-pathname c))
-        (temp (make-amalgam-temp-pathname c)))
-    (ensure-directories-exist output)
-    (ensure-directories-exist temp)
-    (unwind-protect
-      (progn
-        (assemble-parts parts temp)
-        (when (probe-file output)
-          (delete-file output))
-        (uiop:copy-file temp output))
-      (when (probe-file temp)
-        (delete-file temp)))))
+        (output (output-pathname c)))
+    (unless (everyp (lambda (part) (file-up-to-date-p part output)) parts)
+      (let ((temp (make-amalgam-temp-pathname c)))
+        (ensure-directories-exist output)
+        (ensure-directories-exist temp)
+        (unwind-protect
+          (progn
+            (assemble-parts parts temp)
+            (when (probe-file output)
+              (delete-file output))
+            (uiop:copy-file temp output))
+          (when (probe-file temp)
+            (delete-file temp)))))))
