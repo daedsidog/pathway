@@ -1,5 +1,7 @@
 (defpackage #:pathway/tests/asdf/workspace-test
-  (:use #:clean #:fiveam #:pathway #:pathway/asdf)
+  (:use #:clean #:fiveam)
+  (:local-nicknames (#:pw #:pathway)
+                    (#:pw/asdf #:pathway/asdf))
   (:import-from #:pathway/tests/common
                 #:+sleep-interval+
                 #:+fixture-asd+
@@ -22,7 +24,7 @@
 (defparameter +nested-expected-content+ "nested-test-file.txt")
 
 (defun extract-op ()
-  (asdf:make-operation 'pathway/asdf:extract-op))
+  (asdf:make-operation 'pw/asdf:extract-op))
 
 (defun load-fixture-system ()
   (asdf::load-asd +fixture-asd+)
@@ -68,13 +70,13 @@
        (let* ((component (fixture-component ,component-name))
               (output (first (asdf:output-files (extract-op) component))))
          (delete-if-exists output)
-         (asdf:operate 'pathway/asdf:extract-op component)
+         (asdf:operate 'pw/asdf:extract-op component)
          (is (probe-file output))
          (sleep +sleep-interval+)
          (with-open-file (s output :direction :output :if-exists :append)
            s)
          (let ((touched-write-date (file-write-date output)))
-           (asdf:operate 'pathway/asdf:extract-op component)
+           (asdf:operate 'pw/asdf:extract-op component)
            (is (= touched-write-date (file-write-date output))))))))
 
 (defmacro define-extract-op-tests (name component-name expected-content
@@ -88,18 +90,18 @@
 
 (test workspace-extract-class-exists
   "Verify that the WORKSPACE-EXTRACT component class is registered."
-  (is (find-class 'pathway/asdf:workspace-extract nil))
-  (is (subtypep 'pathway/asdf:workspace-extract 'asdf:file-component)))
+  (is (find-class 'pw/asdf:workspace-extract nil))
+  (is (subtypep 'pw/asdf:workspace-extract 'asdf:file-component)))
 
 (test extract-op-class-exists
   "Verify that EXTRACT-OP is a non-propagating ASDF operation."
-  (is (find-class 'pathway/asdf:extract-op nil))
-  (is (subtypep 'pathway/asdf:extract-op 'asdf:non-propagating-operation)))
+  (is (find-class 'pw/asdf:extract-op nil))
+  (is (subtypep 'pw/asdf:extract-op 'asdf:non-propagating-operation)))
 
 (test workspace-extract-asdf-import
   "Verify that WORKSPACE-EXTRACT is importable from the ASDF package."
   (is (eqlp (find-class 'asdf::workspace-extract)
-            (find-class 'pathway/asdf:workspace-extract))))
+            (find-class 'pw/asdf:workspace-extract))))
 
 (define-extract-op-tests archive
   +test-component-name+ +expected-content+ +archive-input-search+)
@@ -130,11 +132,11 @@ types."
           (plain (fixture-component +plain-component-name+))
           (nested (fixture-component +nested-component-name+)))
       (is (string= "archived-test-file.txt"
-                    (pathway/asdf:workspace-pathname archived)))
+                    (pw/asdf:workspace-pathname archived)))
       (is (string= "unarchived-test-file.txt"
-                    (pathway/asdf:workspace-pathname plain)))
+                    (pw/asdf:workspace-pathname plain)))
       (is (string= "nested-test-file.txt"
-                    (pathway/asdf:workspace-pathname nested))))))
+                    (pw/asdf:workspace-pathname nested))))))
 
 (defparameter +dir-system-name+ "pathway-test-directory")
 (defparameter +subdirectory-name+ "test-directory")
@@ -149,15 +151,15 @@ types."
   "Return the test output directory for WORKSPACE-PATHNAME."
   (merge-pathnames
     (pathname workspace-pathname)
-    (default-workspace-pathname)))
+    (pw:default-workspace-pathname)))
 
 (defun subdir-file (filename)
   (format nil "~A/~A" +subdirectory-name+ filename))
 
 (test glob-class-exists
   "Verify that WORKSPACE-EXTRACT handles glob components."
-  (is (find-class 'workspace-extract nil))
-  (is (subtypep 'workspace-extract 'asdf:file-component)))
+  (is (find-class 'pw/asdf:workspace-extract nil))
+  (is (subtypep 'pw/asdf:workspace-extract 'asdf:file-component)))
 
 (test extract-all-from-archive
   "Verify extraction of all files from an archive."
@@ -229,7 +231,7 @@ the output path."
        (write-part-file ,p2 (second +parts+))
        (unwind-protect
          (with-test-workspace ()
-           (let ((,output-var (merge-pathnames ,output-name (default-workspace-pathname))))
+           (let ((,output-var (merge-pathnames ,output-name (pw:default-workspace-pathname))))
              ,@body))
          (ignore-errors (delete-file ,p1))
          (ignore-errors (delete-file ,p2))))))
