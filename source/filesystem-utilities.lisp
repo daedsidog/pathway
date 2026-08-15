@@ -1,7 +1,5 @@
 (defpackage #:pathway/filesystem-utilities
-  (:use #:clean)
-  (:import-from #:pathway/pathname-utilities
-                #:default-tempdir-pathname)
+  (:use #:clean #:pathway/pathname-utilities)
   (:export #:file-age
            #:copy-if-newer
            #:with-cwd
