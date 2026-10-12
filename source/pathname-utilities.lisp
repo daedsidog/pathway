@@ -79,6 +79,9 @@
   (uiop:default-temporary-directory))
 
 (let ((cache-directory nil))
+  (defun forget-cachedir-pathname ()
+    "Forget the cache directory, so a dumped image finds the one where it runs."
+    (setf cache-directory nil))
   (defun default-cachedir-pathname (&optional subdirectory)
     "Return the system cache directory, creating SUBDIRECTORY within it when
 supplied."
@@ -96,6 +99,8 @@ supplied."
           (ensure-directories-exist path)
           path)
         cache-directory)))
+
+(uiop:register-image-dump-hook 'forget-cachedir-pathname)
 
 (defvar *default-workspace-pathname-resolver*
   (lambda ()
